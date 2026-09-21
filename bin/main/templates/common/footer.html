@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepick - Footer Preview</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../../static/assets/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../static/assets/favicon.png">
+    <link rel="apple-touch-icon" href="../../static/assets/favicon.png">
+
+    <!-- Bootstrap 5 CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS (common → footer) -->
+    <link rel="stylesheet" href="../../static/css/common.css">
+    <link rel="stylesheet" href="../../static/css/footer.css">
+</head>
+<body>
+
+<footer class="homepick-footer" th:fragment="footerFragment">
+
+    <!-- ① Top Bar: 이용약관 + 패밀리사이트 -->
+    <div class="footer-top">
+        <div class="container">
+            <div class="footer-top-bar">
+                <!-- 왼쪽: 이용약관 링크 -->
+                <div class="footer-top-links justify-content-center justify-content-lg-start">
+                    <a href="#">이용약관</a>
+                    <a href="#">개인정보처리방침</a>
+                    <a href="#">매물등록 이용약관</a>
+                </div>
+                <!-- 오른쪽: 패밀리사이트 (모바일 숨김) -->
+                <div class="footer-family d-none d-md-block">
+                    <!-- 커스텀 셀렉트 드롭다운 -->
+                    <div class="custom-select-wrapper" id="familySelect">
+                        <button class="custom-select-button" aria-haspopup="listbox" aria-expanded="false">
+                            <span>패밀리사이트</span>
+                            <i class="fa-solid fa-chevron-down footer-family-icon"></i>
+                        </button>
+                        <ul class="custom-select-list" role="listbox">
+                            <!-- 실제 서비스 오픈 시 data-value의 # 을 실제 URL로 교체 -->
+                            <li role="option" data-value="#">홈픽 경매</li>
+                            <li role="option" data-value="#">홈픽 인테리어</li>
+                            <li role="option" data-value="#">홈픽 이사센터</li>
+                            <li role="option" data-value="#">홈픽 파이낸스</li>
+                            <li role="option" data-value="#">홈픽 프리미엄</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ② Main Footer -->
+    <div class="footer-main">
+        <div class="container">
+            <div class="row g-4">
+
+                <!-- Left: 로고 + SNS + 회사정보 -->
+                <div class="col-12 col-lg-7 text-center text-lg-start">
+
+                    <!-- 로고(h1) + SNS 아이콘 -->
+                    <div class="footer-brand justify-content-center justify-content-lg-start">
+                        <h1 class="footer-logo-heading">
+                            <a href="#" class="footer-logo">
+                                <i class="fa-solid fa-house-chimney"></i>
+                                <span>HOMEPICK</span>
+                            </a>
+                        </h1>
+                        <div class="footer-sns">
+                            <a href="#" aria-label="블로그"><i class="fa-brands fa-blogger-b"></i></a>
+                            <a href="#" aria-label="페이스북"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" aria-label="인스타그램"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" aria-label="유튜브"><i class="fa-brands fa-youtube"></i></a>
+                        </div>
+                    </div>
+
+                    <!-- 1. 회사 일반/법적 정보 -->
+                    <div class="footer-company-info">
+                        <h2>(주)홈픽부동산</h2>
+                        <span>대표자: 홍길동</span> |
+                        <span>사업자등록번호: 123-45-67890</span> |
+                        <span>개인정보보호 책임자: 김철수</span>
+                    </div>
+
+                    <!-- 2. 실제 연락처 정보만 address로 묶기 -->
+                    <address class="footer-contact">
+                        <p>서울특별시 강남구 테헤란로 123 홈픽빌딩 1층</p>
+                        <p>
+                            <span>중개상담: <a href="tel:15880000">1588-0000</a></span> |
+                            <span>고객센터: <a href="tel:15881111">1588-1111</a></span> |
+                            <span>FAX: 02-123-4567</span>
+                        </p>
+                    </address>
+                </div>
+
+                <!-- Right: 사이트맵 2뎁스 (모바일에서 숨김) -->
+                <div class="col-12 col-lg-5 d-none d-lg-block">
+                    <nav aria-label="사이트맵">
+                        <ul class="footer-sitemap">
+
+                            <li class="footer-sitemap-item">
+                                <a href="#" class="footer-sitemap-title">홈픽 소개</a>
+                                <ul class="footer-sitemap-list">
+                                    <li><a href="#">회사소개</a></li>
+                                    <li><a href="#">CI/BI</a></li>
+                                    <li><a href="#">오시는 길</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="footer-sitemap-item">
+                                <a href="#" class="footer-sitemap-title">매물찾기</a>
+                                <ul class="footer-sitemap-list">
+                                    <li><a href="#">아파트</a></li>
+                                    <li><a href="#">오피스텔</a></li>
+                                    <li><a href="#">원룸/투룸</a></li>
+                                    <li><a href="#">상가/사무실</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="footer-sitemap-item">
+                                <a href="#" class="footer-sitemap-title">고객지원</a>
+                                <ul class="footer-sitemap-list">
+                                    <li><a href="#">공지사항</a></li>
+                                    <li><a href="#">이벤트</a></li>
+                                    <li><a href="#">FAQ</a></li>
+                                    <li><a href="#">1:1 문의</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="footer-sitemap-item">
+                                <a href="#" class="footer-sitemap-title">제휴문의</a>
+                                <ul class="footer-sitemap-list">
+                                    <li><a href="#">중개사 가입</a></li>
+                                    <li><a href="#">배너광고</a></li>
+                                    <li><a href="#">사업제휴</a></li>
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </nav>
+                </div>
+
+            </div><!-- /.row -->
+        </div><!-- /.container -->
+    </div><!-- /.footer-main -->
+
+    <!-- ③ Copyright Bar -->
+    <div class="footer-copy">
+        <div class="container">
+            <p class="mb-0">
+                &copy; 2026 Homepick. All rights reserved.
+                <span class="d-none d-lg-inline">(주)홈픽부동산 | 개인정보보호 책임자 김철수</span>
+            </p>
+        </div>
+    </div>
+
+</footer>
+
+<!-- 투더탑 버튼 -->
+<button class="btn-totop" id="btnTotop" aria-label="맨 위로 이동" title="맨 위로">
+    <i class="fa-solid fa-chevron-up"></i>
+</button>
+
+<!-- Bootstrap 5 JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script src="../../static/js/footer.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판</title>
+</head>
+<body>
+
+    <!-- 현재 페이지 안내 문구 출력 -->
+    <h2 th:text="|현재 ${currentPage}페이지 입니다.|">현재 1페이지 입니다.</h2>
+
+    <hr>
+
+    <!-- 1~5 페이지 이동 링크 -->
+    <div>
+        <a th:href="@{/th/ex05(page=1)}">[1]</a>
+        <a th:href="@{/th/ex05(page=2)}">[2]</a>
+        <a th:href="@{/th/ex05(page=3)}">[3]</a>
+        <a th:href="@{/th/ex05(page=4)}">[4]</a>
+        <a th:href="@{/th/ex05(page=5)}">[5]</a>
+    </div>
+
+</body>
+</html>

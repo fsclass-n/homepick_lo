@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot - HomepickApplication",
+            "request": "launch",
+            "mainClass": "com.onrender.homepick.HomepickApplication",
+            "projectName": "homepick_lo",
+            "serverReadyAction": {
+                "pattern": "Started HomepickApplication in",
+                "uriFormat": "http://localhost:8080",
+                "action": "openExternally"
+            },
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

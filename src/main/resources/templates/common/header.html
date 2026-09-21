@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomePick</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 커스텀 헤더 CSS -->
+    <link rel="stylesheet" href="../../static/css/common.css">
+    <link rel="stylesheet" href="../../static/css/header.css">
+</head>
+
+<body>
+    <!-- 상단 고정 반응형 헤더 (Bootstrap 5 Flexbox 레이아웃 적용) -->
+    <header id="header" class="sticky-top" th:fragment="headerFragment">
+        <div class="container-fluid px-3 px-md-4 px-xl-5 d-flex align-items-center justify-content-between">
+            <!-- 로고 -->
+            <h1 class="logo m-0 text-center" style="letter-spacing: 0.3rem;">
+                <a href="index.html" class="text-decoration-none text-white">HOMEPICK<span class="d-block fs-6" style="letter-spacing: normal;">홈픽</span></a>
+            </h1>
+
+            <!-- GNB 네비게이션 -->
+            <nav class="gnb d-flex flex-column flex-lg-row mx-lg-auto">
+
+
+                <!-- 닫기 버튼 영역(70px)만큼 공간을 띄워주는 빈 블록 -->
+                <div class="d-lg-none flex-shrink-0" style="height: 70px;"></div>
+
+                <!-- 모바일 전용 로고 -->
+                <div class="text-center flex-shrink-0 d-lg-none pt-4 pb-3 border-bottom border-dark">
+                    <h2 class="m-0">
+                        <a href="index.html" class="text-decoration-none text-white fw-bold fs-4" style="letter-spacing: 0.2rem;">HOMEPICK<span class="d-block text-secondary fs-6" style="letter-spacing: normal;">홈픽</span></a>
+                    </h2>
+                </div>
+
+                <!-- 메인 메뉴 depth1 -->
+                <ul class="depth1 list-unstyled m-0 p-0 d-flex flex-column flex-lg-row gap-lg-5 text-lg-center">
+                    <li class="position-relative">
+                        <!-- 모바일 화살표 아이콘 추가 -->
+                        <a href="templates/sub/product.html" class="position-relative d-flex d-lg-inline-flex justify-content-between align-items-center text-decoration-none fw-bold text-white py-3 px-4 py-lg-2 px-lg-0">
+                            <span>매물 목록</span>
+                            <i class="fa-solid fa-chevron-right arrow-icon d-lg-none text-secondary"></i>
+                        </a>
+                        <ul class="depth2 list-unstyled m-0 p-0">
+                            <li><a href="templates/sub/product.html" class="text-decoration-none">통합 검색 리스트</a></li>
+                            <li><a href="#" class="text-decoration-none">지도 중심 매물 조회</a></li>
+                            <li><a href="#" class="text-decoration-none">매물 상세 정보</a></li>
+                            <li><a href="#" class="text-decoration-none">중개사 찾기 및 상담</a></li>
+                        </ul>
+                    </li>
+                    <li class="position-relative">
+                        <a href="templates/sub/dashboard.html" class="position-relative d-flex d-lg-inline-flex justify-content-between align-items-center text-decoration-none fw-bold text-white py-3 px-4 py-lg-2 px-lg-0">
+                            <span>시장분석 · AI추천</span>
+                            <i class="fa-solid fa-chevron-right arrow-icon d-lg-none text-secondary"></i>
+                        </a>
+                        <ul class="depth2 list-unstyled m-0 p-0">
+                            <li><a href="templates/sub/dashboard.html" class="text-decoration-none">종합 시장 분석 대시보드</a></li>
+                            <li><a href="#" class="text-decoration-none">지역별 트렌드 분석</a></li>
+                            <li><a href="#" class="text-decoration-none">AI 맞춤 매물 추천</a></li>
+                            <li><a href="#" class="text-decoration-none">부동산 뉴스 & 칼럼</a></li>
+                            <li><a href="#" class="text-decoration-none">부동산 세금 · 계산기</a></li>
+                        </ul>
+                    </li>
+                    <li class="position-relative">
+                        <a href="templates/sub/myhomepick.html" class="position-relative d-flex d-lg-inline-flex justify-content-between align-items-center text-decoration-none fw-bold text-white py-3 px-4 py-lg-2 px-lg-0">
+                            <span>마이 홈픽</span>
+                            <i class="fa-solid fa-chevron-right arrow-icon d-lg-none text-secondary"></i>
+                        </a>
+                        <ul class="depth2 list-unstyled m-0 p-0">
+                            <li><a href="templates/sub/myhomepick.html" class="text-decoration-none">마이페이지 홈</a></li>
+                            <li><a href="#" class="text-decoration-none">관심 매물 관리</a></li>
+                            <li><a href="#" class="text-decoration-none">직접 매물 등록 · 수정</a></li>
+                        </ul>
+                    </li>
+                    <li class="position-relative">
+                        <a href="templates/sub/faq.html" class="position-relative d-flex d-lg-inline-flex justify-content-between align-items-center text-decoration-none fw-bold text-white py-3 px-4 py-lg-2 px-lg-0">
+                            <span>고객센터</span>
+                            <i class="fa-solid fa-chevron-right arrow-icon d-lg-none text-secondary"></i>
+                        </a>
+                        <ul class="depth2 list-unstyled m-0 p-0">
+                            <li><a href="templates/sub/faq.html" class="text-decoration-none">자주 묻는 질문 FAQ</a></li>
+                            <li><a href="#" class="text-decoration-none">1:1 문의 게시판</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- 모바일 util -->
+                <div class="d-flex flex-column align-items-center flex-shrink-0 mt-auto d-lg-none py-4 gap-3 border-top border-secondary" style="background: #1a1a1a;">
+                    <div class="mobile-login d-flex gap-3">
+                        <a href="templates/sub/login.html" class="text-decoration-none text-white fs-6">로그인</a>
+                        <a href="templates/sub/member.html" class="text-decoration-none text-white fs-6">회원가입</a>
+                    </div>
+                    <div class="mobile-sns">
+                        <!-- 잘 안 보이던 모바일 SNS 글자색을 돋보이게 밝게(text-white) 수정 -->
+                        <a href="#" class="sns-link text-decoration-none text-white"><span>SNS</span></a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- util: SNS + 로그인/회원가입 + 모바일 햄버거 버튼 -->
+            <div class="util d-flex align-items-center gap-3">
+                <!-- 데스크탑 전용 유틸 (SNS · 로그인 회원가입) -->
+                <div class="d-none d-lg-flex align-items-center gap-3">
+                    <div class="sns">
+                        <a href="#" class="sns-link text-decoration-none text-white"><span>SNS</span></a>
+                    </div>
+                    <span class="text-white fw-bold">·</span>
+                    <div class="login d-flex gap-3 fs-6">
+                        <a href="templates/member/login.html" class="text-decoration-none text-white">로그인</a>
+                        <a href="templates/member/join.html" class="text-decoration-none text-white">회원가입</a>
+                    </div>
+                </div>
+                <!-- 모바일 햄버거 버튼 -->
+                <button type="button" class="btn-hamburger d-lg-none" aria-label="메뉴 열기">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 서브 메뉴 드롭다운 배경 (데스크탑) -->
+        <div class="sub-bg d-none d-lg-block"></div>
+
+        <!-- 모바일 오버레이 배경 -->
+        <div class="menu-overlay d-lg-none"></div>
+    </header>
+
+    <!-- Bootstrap 5 JS Bundle & Header Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../static/js/header.js"></script>
+</body>
+
+</html>

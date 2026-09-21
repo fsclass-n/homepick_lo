@@ -1,0 +1,142 @@
+@charset "utf-8";
+
+/* ==========================================
+   Join Page Container & Card Layout
+   ========================================== */
+.join-container {
+  min-height: calc(100vh - 160px); /* header, footer 높이 고려한 중앙 정렬 여백 */
+}
+
+/* 메인 회원가입 카드 */
+.join-card {
+  max-width: 480px;
+  border-radius: 16px;
+  background-color: var(--color-pure-white);
+  border: 1px solid var(--color-border) !important;
+}
+
+/* 홈픽 인라인 심볼 로고 */
+.homepick-logo {
+  font-size: var(--fz-xxl);
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -1px;
+}
+
+.homepick-logo i {
+  color: var(--color-accent); /* 집 아이콘은 포인트 컬러 */
+}
+
+.step-title {
+  font-size: var(--fz-xl);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text);
+  letter-spacing: -0.5px;
+}
+
+/* ==========================================
+   Form Input Styles
+   ========================================== */
+/* 밑줄형 인풋 (이름, 생년월일, 전화번호) */
+.underline-input {
+  border: none;
+  border-bottom: 2px solid var(--color-border);
+  border-radius: 0;
+  padding: 10px 0;
+  font-size: var(--fz-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  background-color: transparent;
+  box-shadow: none !important;
+}
+
+.underline-input:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+/* 박스형 카드 인풋 (아이디, 비밀번호) */
+.input-card {
+  border: 1px solid var(--color-border);
+  background-color: var(--color-pure-white);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-box-focus:focus-within {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* 6자리 OTP 인증번호 인풋 */
+.otp-input {
+  width: 44px;
+  height: 52px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: var(--fz-lg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.otp-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 106, 201, 0.2);
+}
+
+/* ==========================================
+   Buttons & Checkboxes
+   ========================================== */
+/* 홈픽 메인 CTA 버튼 */
+.btn-homepick {
+  background-color: var(--color-primary);
+  border: none;
+  color: var(--color-pure-white);
+  font-size: var(--fz-md);
+  font-weight: 700;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.btn-homepick:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  color: var(--color-pure-white);
+}
+
+.btn-homepick:disabled {
+  background-color: var(--color-disabled);
+  color: var(--color-pure-white);
+  cursor: not-allowed;
+}
+
+/* 약관 체크박스 */
+.check-all-box {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+}
+
+.form-check-input:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* 성별 선택 토글 버튼 활성화 테마 */
+.btn-check:checked + .btn-outline-secondary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-pure-white);
+}
+
+/* ==========================================
+   Typography Utilities
+   ========================================== */
+.text-homepick {
+  color: var(--color-primary) !important;
+}
+
+.text-accent {
+  color: var(--color-accent) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}

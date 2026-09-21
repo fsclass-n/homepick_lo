@@ -1,0 +1,482 @@
+@charset "utf-8";
+
+/* ============================================
+   footer.css — Homepick 부동산 푸터 스타일
+   common.css의 변수를 활용
+   ============================================ */
+
+/* ── ① 푸터 전체 래퍼 ── */
+.homepick-footer {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    color: var(--color-text-gray);
+    background-color: var(--color-bg-dark);
+}
+
+/* ============================================
+   ② Top Bar (이용약관 + 패밀리사이트)
+   ============================================ */
+.footer-top {
+    background-color: var(--color-primary);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* 이용약관(좌) + 패밀리사이트(우) 가로 배치 */
+.footer-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;    /* 모바일: 중앙 정렬 */
+    flex-wrap: wrap;
+    gap: 0.5rem 0;
+}
+
+.footer-top-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0;
+}
+
+.footer-top-links a {
+    color: var(--color-text-light);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.15rem 1rem 0.15rem 0;
+    cursor: pointer;
+    transition: color 0.25s ease;
+}
+
+/* 구분선 (첫 항목 제외) */
+.footer-top-links a + a {
+    border-left: 1px solid rgba(255,255,255,0.3);
+    padding-left: 1rem;
+}
+
+.footer-top-links a:hover {
+    color: var(--color-accent);
+}
+
+/* 패밀리사이트 영역 */
+.footer-family {
+    margin-left: auto;          /* 자동으로 우측 끼우기 */
+}
+
+/* 커스텀 셀렉트 래퍼 */
+.custom-select-wrapper {
+    position: relative;
+    display: inline-block;
+    min-width: 150px;
+}
+
+/* 셀렉트 버튼 */
+.custom-select-button {
+    width: 100%;
+    background-color: transparent;
+    border: 1px solid rgba(255,255,255,0.4);
+    color: var(--color-text-light);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    padding: 0.35rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.custom-select-button:hover,
+.custom-select-wrapper.open .custom-select-button {
+    border-color: var(--color-accent);
+}
+
+/* 꺽쇠 아이콘 — 드롭다운 열림/호버 시 회전 애니메이션 */
+.footer-family-icon {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.65rem;
+    pointer-events: none;
+    transition: color 0.25s ease, transform 0.3s ease;
+    transform-origin: center;
+    margin-left: 0.5rem;
+}
+
+/* hover / open 상태: 색상 변경 + 180도 회전 */
+.custom-select-button:hover .footer-family-icon,
+.custom-select-wrapper.open .footer-family-icon {
+    color: var(--color-accent);
+    transform: rotate(180deg);
+}
+
+/* 드롭다운 리스트 */
+.custom-select-list {
+    position: absolute;
+    bottom: calc(100% + 5px); /* 버튼 위로 열림. 아래로 열려면 top: calc(100% + 5px); */
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background-color: var(--color-primary);
+    border: 1px solid var(--color-accent);
+    border-radius: 4px;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    z-index: 100;
+}
+
+/* open 클래스 추가 시 드롭다운 표시 */
+.custom-select-wrapper.open .custom-select-list {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 드롭다운 항목 */
+.custom-select-list li {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.8);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.custom-select-list li:not(:last-child) {
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.custom-select-list li:hover {
+    background-color: rgba(255,255,255,0.1);
+    color: var(--color-text-light);
+}
+
+/* ============================================
+   ③ Main Footer
+   ============================================ */
+.footer-main {
+    padding: 2rem 0;
+}
+
+/* ── 브랜드 영역 (로고 + SNS) ── */
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+/* h1 래퍼: 브라우저 기본 h1 여백·크기 제거 */
+.footer-logo-heading {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+.footer-logo {
+    font-family: var(--font-title);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--color-text-light);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    letter-spacing: -0.5px;
+    cursor: pointer;
+    transition: opacity 0.25s ease;
+}
+
+.footer-logo i {
+    color: var(--color-accent);
+    font-size: 1.4rem;
+}
+
+.footer-logo:hover {
+    color: var(--color-text-light);
+    opacity: 0.85;
+}
+
+/* SNS 아이콘 그룹 */
+.footer-sns {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.footer-sns a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.1);
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s ease;
+}
+
+.footer-sns a:hover {
+    background-color: var(--color-accent);
+    color: var(--color-bg-dark);
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   ── 회사 일반/법적 정보 (div.footer-company-info)
+   ============================================ */
+.footer-company-info {
+    margin-bottom: 0.75rem;
+    line-height: 2;
+}
+
+/* h2를 inline으로 설정 → 다음 span들과 한 줄로 흐름 */
+.footer-company-info h2 {
+    display: inline;
+    font-family: var(--font-title);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-light);
+    letter-spacing: 0.2px;
+    margin-right: 0.5rem;
+}
+
+.footer-company-info span {
+    display: inline;
+    font-size: 0.8rem;
+    color: var(--color-text-gray);
+    white-space: nowrap;
+}
+
+/* ============================================
+   ── 실제 연락처 정보 (address.footer-contact)
+   ============================================ */
+.footer-contact {
+    font-style: normal;
+    font-size: 0.8rem;
+    color: var(--color-text-gray);
+    line-height: 1.8;
+}
+
+.footer-contact p {
+    margin: 0 0 0.25rem 0;
+}
+
+.footer-contact span {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.footer-contact a {
+    color: var(--color-text-gray);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.footer-contact a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+/* ============================================
+   ── 사이트맵 2뎁스 (nav > ul.footer-sitemap)
+   ============================================ */
+
+/* 1뎁스: 카테고리 목록 — 수평 4열 배치 */
+.footer-sitemap {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 0 1.5rem;
+}
+
+.footer-sitemap-item {
+    flex: 1;
+    min-width: 0;
+}
+
+/* 1뎁스 링크 (카테고리 제목) */
+.footer-sitemap-title {
+    font-family: var(--font-title);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-light);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 1rem;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.footer-sitemap-title:hover {
+    color: var(--color-accent);
+}
+
+/* 2뎁스: 하위 메뉴 목록 */
+.footer-sitemap-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-sitemap-list li {
+    margin-bottom: 0.65rem;
+}
+
+/* 2뎁스 링크 */
+.footer-sitemap-list a {
+    color: var(--color-text-gray);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: color 0.2s ease, padding-left 0.2s ease;
+}
+
+.footer-sitemap-list a:hover {
+    color: var(--color-accent);
+    padding-left: 4px;
+}
+
+/* ============================================
+   ④ Copyright Bar
+   ============================================ */
+.footer-copy {
+    background-color: rgba(0,0,0,0.25);
+    padding: 0.9rem 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ============================================
+   ⑤ 반응형 미디어 쿼리 (Bootstrap 5 중단점)
+   ============================================ */
+
+/* 모바일: 회사 정보 중앙 정렬 (Base < 576px) */
+.footer-company-info,
+.footer-contact {
+    text-align: center;
+}
+
+/* sm: >= 576px */
+@media (min-width: 576px) {
+    .footer-top-links a {
+        font-size: 0.875rem;
+    }
+    .footer-logo {
+        font-size: 1.75rem;
+    }
+}
+
+/* md: >= 768px */
+@media (min-width: 768px) {
+    .footer-main {
+        padding: 2.5rem 0;
+    }
+}
+
+/* lg: >= 992px */
+@media (min-width: 992px) {
+    .footer-main {
+        padding: 3.5rem 0;
+    }
+    .footer-brand {
+        margin-bottom: 1.75rem;
+    }
+    .footer-logo {
+        font-size: 2rem;
+    }
+    /* 데스크탑: 중앙 정렬 해제 → 왼쪽 정렬 복원 */
+    .footer-company-info,
+    .footer-contact {
+        text-align: left;
+    }
+}
+
+/* xl: >= 1200px */
+@media (min-width: 1200px) {
+    .footer-main {
+        padding: 4rem 0;
+    }
+}
+
+/* xxl: >= 1400px */
+@media (min-width: 1400px) {
+    .homepick-footer {
+        font-size: 0.9375rem;
+    }
+}
+
+/* ============================================
+   ▼ 투더탑 버튼 (fixed 우하단)
+   ============================================ */
+.btn-totop {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    border: 2px solid var(--color-accent);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: opacity 0.3s ease, transform 0.3s ease,
+                background-color 0.2s ease, visibility 0.3s;
+    z-index: 999;
+}
+
+/* 스크롤 시 .show 클래스로 표시 */
+.btn-totop.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.btn-totop:hover {
+    background-color: var(--color-accent);
+    color: var(--color-bg-dark);
+    border-color: var(--color-accent);
+    transform: translateY(-3px);
+}
+
+/* 모바일: 좌측 여백 축소 */
+@media (max-width: 575.98px) {
+    .btn-totop {
+        bottom: 1.25rem;
+        right: 1.25rem;
+        width: 40px;
+        height: 40px;
+        font-size: 0.875rem;
+    }
+}
+
+/* ============================================
+   ▼ 반응형: Top Bar 데스크탑 정렬
+   ============================================ */
+@media (min-width: 992px) {
+    .footer-top-bar {
+        justify-content: space-between; /* 데스크탑: 좌우 분리 */
+    }
+}

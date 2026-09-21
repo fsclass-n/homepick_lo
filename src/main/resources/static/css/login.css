@@ -1,0 +1,139 @@
+@charset "UTF-8";
+
+/* 기본 폰트 및 유틸리티 */
+body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.text-brand {
+    color: #0082a6;
+}
+
+.tracking-tight {
+    letter-spacing: -0.5px;
+}
+
+/* 1. 레이아웃 (인라인 스타일 이관) */
+.login-container {
+    max-width: 420px;
+    width: 100%;
+}
+
+/* 2. 인풋 폼 커스텀 */
+.custom-input {
+    height: 48px;
+    font-size: 0.95rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    padding-left: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-input:focus {
+    border-color: #0082a6;
+    box-shadow: 0 0 0 3px rgba(0, 130, 166, 0.15);
+}
+
+.custom-input.is-invalid {
+    border-color: #dc3545;
+    background-image: none; /* 부트스트랩 기본 느낌표 아이콘 제거 */
+}
+
+.custom-input.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+}
+
+.custom-input::placeholder {
+    color: #a0a0a0;
+}
+
+/* 비밀번호 토글 버튼 위치 고정 (에러 문구 출력 시에도 흔들림 방지) */
+.btn-toggle-pw {
+    top: 24px !important;
+    cursor: pointer;
+}
+
+/* 3. 체크박스 */
+.custom-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
+    cursor: pointer;
+}
+
+.custom-checkbox:checked {
+    background-color: #0082a6;
+    border-color: #0082a6;
+}
+
+/* 4. 로그인 버튼 (상태별 호버 색상 완벽 유지) */
+.btn-login {
+    height: 48px;
+    font-size: 1rem;
+    border: none !important;
+    border-radius: 6px;
+    background-color: #b5b5b5 !important;
+    color: #ffffff !important;
+    transition: background-color 0.2s ease;
+    cursor: not-allowed;
+}
+
+.btn-login:disabled:hover {
+    background-color: #a3a3a3 !important;
+    color: #ffffff !important;
+}
+
+/* 활성화 상태 */
+.btn-login.active {
+    background-color: #0082a6 !important;
+    cursor: pointer;
+}
+
+.btn-login.active:hover {
+    background-color: #006b88 !important;
+    color: #ffffff !important;
+}
+
+.btn-login.active:active {
+    transform: scale(0.99);
+}
+
+/* 5. 소셜 로그인 버튼 공통 및 브랜드 색상 */
+.btn-social {
+    height: 48px;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: filter 0.2s ease;
+}
+
+.btn-social:hover {
+    filter: brightness(0.96);
+}
+
+.btn-kakao {
+    background-color: #fee500 !important;
+    color: #191919 !important;
+    border: none;
+}
+
+.btn-naver {
+    background-color: #03c75a !important;
+    color: #ffffff !important;
+    border: none;
+}
+
+.naver-icon {
+    font-family: Arial, sans-serif;
+    font-weight: 900;
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.btn-google {
+    background-color: #ffffff !important;
+    color: #3c4043 !important;
+    border: 1px solid #dadce0 !important;
+}
