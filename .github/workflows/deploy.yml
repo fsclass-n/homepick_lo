@@ -14,18 +14,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 17
+    # 1. JDK 21 설정 (기술 스택에 맞게 수정)
+    - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
 
+    # 2. Gradle 빌드 환경 최적화
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
+    # 3. gradlew 실행 권한 부여
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    # 4. TiDB 환경 변수 주입 후 Gradle 빌드 및 테스트 수행
     - name: Build with Gradle
       env:
         TIDB_HOST: ${{ secrets.TIDB_HOST }}
@@ -34,3 +38,7 @@ jobs:
         TIDB_USERNAME: ${{ secrets.TIDB_USERNAME }}
         TIDB_PASSWORD: ${{ secrets.TIDB_PASSWORD }}
       run: ./gradlew build
+
+    # 5. Render에 사용될 Dockerfile 빌드 정상 여부 사전 검증
+    - name: Test Docker Build
+      run: docker build -t homepick-test .
