@@ -5,7 +5,7 @@ CREATE DATABASE homepick_db;
 -- DB 사용
 USE homepick_db;
 
--- member 테이블 생성
+-- 테이블 생성
 CREATE TABLE IF NOT EXISTS member (
     email VARCHAR(50) PRIMARY KEY,
     password VARCHAR(100) NOT NULL,
@@ -13,14 +13,30 @@ CREATE TABLE IF NOT EXISTS member (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) AUTO_ID_CACHE=1;
 
+
+CREATE TABLE IF NOT EXISTS member (
+    member_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id         VARCHAR(50) NOT NULL UNIQUE,
+    password_hash   VARCHAR(255) NOT NULL,
+    name            VARCHAR(50) NOT NULL,
+    birth           CHAR(8) NOT NULL,
+    gender          CHAR(1) NOT NULL,
+    phone           VARCHAR(20) NOT NULL UNIQUE,
+    firebase_uid    VARCHAR(128) NOT NULL UNIQUE,
+    role            VARCHAR(20) DEFAULT 'USER',
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_ID_CACHE=1;
+
+
 -- qna 테이블 생성
 CREATE TABLE IF NOT EXISTS qna (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
-    writer VARCHAR(50) NOT NULL,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) AUTO_ID_CACHE=1;
+    writer VARCHAR(50) NOT NULL,
+    status VARCHAR(20) DEFAULT '대기중',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) AUTO_ID_CACHE 1;
 
 
 -- qna 게시판 테스트용 데이터
@@ -104,3 +120,11 @@ INSERT INTO qna (title, content, writer) VALUES
 ('역세권 아파트가 실제로 가격 상승에 유리한가요?',
  '현재 아파트 매수를 고민하면서 지하철역에서 도보 5분 정도인 매물과 15분 정도인 매물을 비교하고 있습니다. 일반적으로 역과의 거리가 집값에 얼마나 영향을 미치는지 궁금합니다.',
  '황도현');
+
+
+-- 조회
+SELECT * FROM member;
+SELECT * FROM qna;
+
+-- 삭제
+DROP TABLE IF EXISTS member;

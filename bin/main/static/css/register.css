@@ -1,0 +1,109 @@
+@charset "UTF-8";
+
+/* 기본 폰트 및 유틸리티 */
+body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.text-brand {
+    color: #0082a6;
+}
+
+.tracking-tight {
+    letter-spacing: -0.5px;
+}
+
+/* 1. 레이아웃 (로그인과 동일 규격) */
+.register-container {
+    max-width: 420px;
+    width: 100%;
+}
+
+/* 2. 인풋 폼 커스텀 (login.css 공유 규격) */
+.custom-input {
+    height: 48px;
+    font-size: 0.95rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    padding-left: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-input:focus {
+    border-color: #0082a6;
+    box-shadow: 0 0 0 3px rgba(0, 130, 166, 0.15);
+}
+
+.custom-input::placeholder {
+    color: #a0a0a0;
+}
+
+/* 3. 체크박스 및 약관 상자 */
+.custom-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
+    cursor: pointer;
+}
+
+.custom-checkbox:checked {
+    background-color: #0082a6;
+    border-color: #0082a6;
+}
+
+.check-all-box {
+    background-color: #f8f9fa;
+    border-color: #e9ecef !important;
+}
+
+/* 4. 성별 선택 버튼 커스텀 */
+.btn-outline-gender {
+    color: #495057;
+    border: 1px solid #dcdcdc;
+    background-color: #ffffff;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-check:checked + .btn-outline-gender {
+    color: #0082a6;
+    background-color: rgba(0, 130, 166, 0.05);
+    border-color: #0082a6;
+}
+
+/* 5. 메인 액션 버튼 (다음, 완료 등) - 로그인 버튼 호버 감성과 동일화 */
+.btn-action {
+    height: 48px;
+    font-size: 1rem;
+    border: none !important;
+    border-radius: 6px;
+    background-color: #b5b5b5 !important;
+    color: #ffffff !important;
+    transition: background-color 0.2s ease;
+    cursor: not-allowed;
+}
+
+.btn-action:disabled:hover {
+    background-color: #a3a3a3 !important;
+    color: #ffffff !important;
+}
+
+/* 활성화 상태 (disabled 속성이 제거되었을 때) */
+.btn-action:not(:disabled) {
+    background-color: #0082a6 !important;
+    cursor: pointer;
+}
+
+.btn-action:not(:disabled):hover {
+    background-color: #006b88 !important;
+    color: #ffffff !important;
+}
+
+.btn-action:not(:disabled):active {
+    transform: scale(0.99);
+}
+
+/* 6. 모달 OTP 인풋 높이 조절 */
+.otp-input {
+    height: 48px;
+}

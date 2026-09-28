@@ -1,10 +1,5 @@
 @charset "utf-8";
 
-/* ============================================
-   common.css — 공통 CSS 변수 및 기반 스타일
-   Homepick 부동산 플랫폼
-   ============================================ */
-
 /* ==========================================
    Font CDN
    ========================================== */
@@ -41,6 +36,7 @@
   --color-disabled: #D1D7DC;
 }
 
+/* ==========================================
    Reset & Base Styles
    ========================================== */
 * {
@@ -72,98 +68,4 @@ body {
   color: var(--color-text);
   background-color: var(--color-white);
   -webkit-font-smoothing: antialiased;
-}
-
-/* ── 공통 Reset/Base ── */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-/* ============================================
-   ▼ 커스텀 마우스 커서 효과
-   ============================================ */
-
-/* 데스크탑에서 브라우저 기본 커서 숨기기 (푸터 영역 안에서만) */
-@media (pointer: fine) {
-    .homepick-footer {
-        cursor: none;
-    }
-    .homepick-footer a, 
-    .homepick-footer button, 
-    .homepick-footer select, 
-    .homepick-footer input, 
-    .homepick-footer .custom-select-list li, 
-    .homepick-footer .footer-family-select {
-        cursor: none !important;
-    }
-}
-
-/* 메인 커서 (작은 점) */
-.custom-cursor {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 6px;
-    height: 6px;
-    background-color: var(--color-accent);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate3d(0, 0, 0);
-    margin: -3px 0 0 -3px; /* 중심점 맞추기 */
-    opacity: 0; /* 기본적으로 숨김 (푸터 진입 시 표시) */
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.1s ease;
-}
-
-/* 트레일 커서 (따라다니는 큰 원) */
-.custom-cursor-follower {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 32px;
-    height: 32px;
-    border: 1.5px solid var(--color-accent);
-    background-color: rgba(252, 163, 17, 0.1);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate3d(0, 0, 0);
-    margin: -16px 0 0 -16px; /* 중심점 맞추기 */
-    opacity: 0; /* 기본적으로 숨김 (푸터 진입 시 표시) */
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease, width 0.3s ease, height 0.3s ease, margin 0.3s ease, background-color 0.3s ease;
-}
-
-/* 푸터 진입 시 표시될 때 사용 (JS에서 클래스 제어) */
-.custom-cursor.visible,
-.custom-cursor-follower.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* 링크 등 호버 시 효과 */
-.custom-cursor.active {
-    opacity: 0; /* 메인 점 숨김 */
-}
-
-.custom-cursor-follower.active {
-    width: 50px;
-    height: 50px;
-    margin: -25px 0 0 -25px;
-    background-color: rgba(252, 163, 17, 0.2);
-    border-color: transparent;
-    backdrop-filter: invert(10%);
-}
-
-/* ============================================
-   ▼ 모바일 환경 마우스 커서 효과 숨기기
-   ============================================ */
-@media (max-width: 991.98px) {
-    .custom-cursor,
-    .custom-cursor-follower {
-        display: none !important;
-    }
 }

@@ -3,18 +3,29 @@ document.addEventListener('DOMContentLoaded', () => {
    * 1. Firebase Spark (무료) SDK 설정
    * (Google Firebase 콘솔 -> 프로젝트 설정 -> 내 앱에서 확인 가능한 config 입력)
    * ================================================================= */
-  const firebaseConfig = {
-    apiKey: "YOUR_FIREBASE_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
+
+  const firebaseConfig = window.__FIREBASE_CONFIG__;
+
+  // const firebaseConfig = {
+  //   apiKey: "YOUR_FIREBASE_API_KEY",
+  //   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  //   projectId: "YOUR_PROJECT_ID",
+  //   storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  //   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  //   appId: "YOUR_APP_ID"
+  // };
 
   // Firebase 초기화 (CDN compat)
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+  let isFirebaseReady = false;
+  try {
+    if (typeof firebase === 'undefined') throw new Error('Firebase SDK가 로드되지 않았습니다.');
+    if (!firebaseConfig) throw new Error('window.__FIREBASE_CONFIG__ 가 정의되지 않았습니다.');
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    isFirebaseReady = true;
+  } catch (err) {
+    console.error('Firebase 초기화 실패:', err);
   }
 
   // 모달 인스턴스
@@ -106,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function setupRecaptcha(){
-    if (!window.recaptchaVerifier) {
+    if (isFirebaseReady && !window.recaptchaVerifier) {
       window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
         size: 'invisible',
         callback: () => {
@@ -121,6 +132,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const rawPhone = userPhone.value.trim();
     // 대한민국 국가코드 +82 포맷 변환 (01012345678 -> +821012345678)
     const formattedPhone = `+82${rawPhone.replace(/^0/, '')}`;
+
+    if (!isFirebaseReady) {
+      alert('본인인증 서비스(Firebase) 설정이 되어 있지 않습니다. 관리자에게 문의해 주세요.');
+      return;
+    }
 
     btnSendAuthCode.disabled = true;
     btnSendAuthCode.textContent = '문자 발송 중...';
