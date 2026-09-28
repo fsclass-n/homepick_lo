@@ -4,7 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
    * (Google Firebase 콘솔 -> 프로젝트 설정 -> 내 앱에서 확인 가능한 config 입력)
    * ================================================================= */
 
-  const firebaseConfig = window.__FIREBASE_CONFIG__;
+  // firebase-config.js 에서 window.__FIREBASE_CONFIG__ / window.firebaseConfig / 전역 const firebaseConfig 중 하나로 정의
+  const resolvedFirebaseConfig = window.__FIREBASE_CONFIG__
+    || window.firebaseConfig
+    || (typeof firebaseConfig !== 'undefined' ? firebaseConfig : undefined);
 
   // const firebaseConfig = {
   //   apiKey: "YOUR_FIREBASE_API_KEY",
@@ -19,10 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let isFirebaseReady = false;
   try {
     if (typeof firebase === 'undefined') throw new Error('Firebase SDK가 로드되지 않았습니다.');
-    if (!firebaseConfig) throw new Error('window.__FIREBASE_CONFIG__ 가 정의되지 않았습니다.');
     if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+      if (!resolvedFirebaseConfig) throw new Error('Firebase 설정이 없습니다. /js/firebase-config.js 로드 여부를 확인하세요.');
+      firebase.initializeApp(resolvedFirebaseConfig);
     }
+    firebase.auth().languageCode = 'ko';
     isFirebaseReady = true;
   } catch (err) {
     console.error('Firebase 초기화 실패:', err);
@@ -232,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Spring Boot 4.x + JDBC / TiDB 백엔드 연동 엔드포인트 호출
-      const response = await fetch('/api/members/join', {
+      const response = await fetch('/api/members/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

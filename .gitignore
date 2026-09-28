@@ -38,7 +38,9 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+bin/
 build/
+.settings/
 develop-eggs/
 dist/
 downloads/
