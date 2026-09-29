@@ -157,7 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
       otpInputs[0].focus();
     } catch (err) {
       console.error(err);
-      alert('인증문자 발송에 실패했습니다. 번호를 확인하거나 잠시 후 다시 시도해 주세요.\n' + err.message);
+      const authErrorMessages = {
+        'auth/operation-not-allowed': 'SMS 발송이 허용되지 않은 번호/지역입니다.\n(Firebase 콘솔의 SMS 리전 정책 또는 테스트 전화번호 등록을 확인하세요.)',
+        'auth/invalid-phone-number': '올바르지 않은 휴대폰 번호 형식입니다.',
+        'auth/too-many-requests': '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
+        'auth/quota-exceeded': 'SMS 발송 한도를 초과했습니다. 잠시 후 다시 시도해 주세요.',
+        'auth/billing-not-enabled': '실제 SMS 발송은 Firebase 유료(Blaze) 요금제에서만 가능합니다.'
+      };
+      alert('인증문자 발송에 실패했습니다.\n' + (authErrorMessages[err.code] || err.message));
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
       }
@@ -215,16 +222,54 @@ document.addEventListener('DOMContentLoaded', () => {
   const userPasswordConfirm = document.getElementById('userPasswordConfirm');
   const btnSubmitJoin = document.getElementById('btnSubmitJoin');
 
+  // 로그인(login.js)과 동일한 유효성 규칙
+  // 아이디: 영문 소문자/대문자, 숫자, 언더스코어(_) 포함 4~20자
+  const USERNAME_REGEX = /^[a-zA-Z0-9_]{4,20}$/;
+  // 비밀번호: 8~30자, 영문 및 숫자 필수 포함, 특수문자 선택 허용
+  const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,30}$/;
+
+  function setFieldState(input, feedbackId, isValid, invalidMsg){
+    const feedbackEl = document.getElementById(feedbackId);
+    if (input.value === '') {
+      input.classList.remove('is-valid', 'is-invalid');
+      feedbackEl.textContent = '';
+      return;
+    }
+    input.classList.toggle('is-valid', isValid);
+    input.classList.toggle('is-invalid', !isValid);
+    feedbackEl.textContent = isValid ? '' : invalidMsg;
+  }
+
+  function isPwMatch(){
+    return userPasswordConfirm.value !== '' && userPassword.value === userPasswordConfirm.value;
+  }
+
   function validateStep4(){
-    const isIdOk = userId.value.trim().length >= 4;
-    const isPwOk = userPassword.value.length >= 8;
-    const isPwMatch = userPassword.value === userPasswordConfirm.value;
-    btnSubmitJoin.disabled = !(isIdOk && isPwOk && isPwMatch);
+    const isIdOk = USERNAME_REGEX.test(userId.value.trim());
+    const isPwOk = PASSWORD_REGEX.test(userPassword.value);
+    btnSubmitJoin.disabled = !(isIdOk && isPwOk && isPwMatch());
   }
 
   userId.addEventListener('input', validateStep4);
-  userPassword.addEventListener('input', validateStep4);
-  userPasswordConfirm.addEventListener('input', validateStep4);
+  userPassword.addEventListener('input', () => {
+    validateStep4();
+    if (userPasswordConfirm.value) {
+      setFieldState(userPasswordConfirm, 'userPasswordConfirmFeedback', isPwMatch(), '비밀번호가 일치하지 않습니다.');
+    }
+  });
+  userPasswordConfirm.addEventListener('input', () => {
+    validateStep4();
+    setFieldState(userPasswordConfirm, 'userPasswordConfirmFeedback', isPwMatch(), '비밀번호가 일치하지 않습니다.');
+  });
+
+  userId.addEventListener('blur', () => {
+    setFieldState(userId, 'userIdFeedback', USERNAME_REGEX.test(userId.value.trim()),
+      '아이디는 4~20자의 영문, 숫자 조합이어야 합니다.');
+  });
+  userPassword.addEventListener('blur', () => {
+    setFieldState(userPassword, 'userPasswordFeedback', PASSWORD_REGEX.test(userPassword.value),
+      '비밀번호는 영문, 숫자를 포함하여 8자 이상이어야 합니다.');
+  });
 
   // 최종 회원가입 완료 요청
   btnSubmitJoin.addEventListener('click', async () => {

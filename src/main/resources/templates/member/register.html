@@ -140,17 +140,23 @@
                     <form id="joinForm" onsubmit="return false;">
                         <div class="mb-3">
                             <label for="userId" class="form-label small fw-semibold text-secondary">아이디</label>
-                            <input type="text" class="form-control form-control-lg custom-input" id="userId" placeholder="예: homepick123">
+                            <input type="text" class="form-control form-control-lg custom-input" id="userId" placeholder="4~20자 영문, 숫자, _ (예: homepick123)"
+                                minlength="4" maxlength="20" autocomplete="username" spellcheck="false" autocapitalize="none">
+                            <div id="userIdFeedback" class="invalid-feedback ps-1 small text-start"></div>
                         </div>
 
                         <div class="mb-3">
                             <label for="userPassword" class="form-label small fw-semibold text-secondary">비밀번호</label>
-                            <input type="password" class="form-control form-control-lg custom-input" id="userPassword" placeholder="8자리 이상 영문/숫자/특수문자">
+                            <input type="password" class="form-control form-control-lg custom-input" id="userPassword" placeholder="8~30자 영문+숫자 필수 (특수문자 @$!%*#?& 허용)"
+                                minlength="8" maxlength="30" autocomplete="new-password">
+                            <div id="userPasswordFeedback" class="invalid-feedback ps-1 small text-start"></div>
                         </div>
 
                         <div class="mb-4">
                             <label for="userPasswordConfirm" class="form-label small fw-semibold text-secondary">비밀번호 확인</label>
-                            <input type="password" class="form-control form-control-lg custom-input" id="userPasswordConfirm" placeholder="비밀번호 재입력">
+                            <input type="password" class="form-control form-control-lg custom-input" id="userPasswordConfirm" placeholder="비밀번호 재입력"
+                                maxlength="30" autocomplete="new-password">
+                            <div id="userPasswordConfirmFeedback" class="invalid-feedback ps-1 small text-start"></div>
                         </div>
 
                         <button type="button" class="btn btn-action w-100 fw-bold mb-4" id="btnSubmitJoin" disabled>

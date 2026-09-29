@@ -1,9 +1,8 @@
-// LoginController.java
 package com.onrender.homepick.controller;
 
 import com.onrender.homepick.dto.LoginRequest;
+import com.onrender.homepick.dto.MemberJoinRequest;
 import com.onrender.homepick.dto.MemberSessionDto;
-import com.onrender.homepick.dto.RegisterRequest;
 import com.onrender.homepick.repository.JdbcMemberRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -28,14 +27,15 @@ public class LoginController{
 
     @PostMapping("/login")
     public String process(@ModelAttribute LoginRequest req, HttpSession session, Model model){
-        RegisterRequest member = repository.findByEmail(req.getEmail()).orElse(null);
+        MemberJoinRequest member = repository.findByUserId(req.getUsername()).orElse(null);
 
         if (member == null || !member.getPassword().equals(req.getPassword())) {
-            model.addAttribute("error", "이메일 또는 비밀번호가 일치하지 않습니다.");
+            model.addAttribute("error", "아이디 또는 비밀번호가 일치하지 않습니다.");
+            model.addAttribute("username", req.getUsername());
             return "member/login";
         }
 
-        session.setAttribute("loginUser", new MemberSessionDto(member.getEmail(), member.getName()));
+        session.setAttribute("loginUser", new MemberSessionDto(member.getUserId(), member.getName()));
         return "redirect:/";
     }
 
