@@ -7,6 +7,7 @@ import com.onrender.homepick.dto.RegisterRequest;
 import com.onrender.homepick.repository.JdbcMemberRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class LoginController{
 
     private final JdbcMemberRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping("/login")
     public String form(){
@@ -30,7 +32,7 @@ public class LoginController{
     public String process(@ModelAttribute LoginRequest req, HttpSession session, Model model){
         RegisterRequest member = repository.findByEmail(req.getEmail()).orElse(null);
 
-        if (member == null || !member.getPassword().equals(req.getPassword())) {
+        if (member == null || !passwordEncoder.matches(req.getPassword(), member.getPassword())) {
             model.addAttribute("error", "이메일 또는 비밀번호가 일치하지 않습니다.");
             return "member/login";
         }
