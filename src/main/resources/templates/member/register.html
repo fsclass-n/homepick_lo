@@ -222,8 +222,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-    <!-- Firebase Config (gitignore 대상, 로컬에서 직접 생성) -->
-    <script th:src="@{/js/firebase-config.js}" src="../../static/js/firebase-config.js"></script>
+    <!-- Firebase Config (application.properties + 환경변수 기반) -->
+    <script th:inline="javascript">
+        window.__FIREBASE_CONFIG__ = /*[[${firebaseConfig}]]*/ null;
+    </script>
 
     <!-- Custom Join JS -->
     <script th:src="@{/js/register.js}" src="../../static/js/register.js"></script>

@@ -4,10 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
    * (Google Firebase 콘솔 -> 프로젝트 설정 -> 내 앱에서 확인 가능한 config 입력)
    * ================================================================= */
 
-  // firebase-config.js 에서 window.__FIREBASE_CONFIG__ / window.firebaseConfig / 전역 const firebaseConfig 중 하나로 정의
-  const resolvedFirebaseConfig = window.__FIREBASE_CONFIG__
-    || window.firebaseConfig
-    || (typeof firebaseConfig !== 'undefined' ? firebaseConfig : undefined);
+  // register.html 에서 window.__FIREBASE_CONFIG__ 로 주입
+  const resolvedFirebaseConfig = window.__FIREBASE_CONFIG__;
 
   // const firebaseConfig = {
   //   apiKey: "YOUR_FIREBASE_API_KEY",
@@ -23,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     if (typeof firebase === 'undefined') throw new Error('Firebase SDK가 로드되지 않았습니다.');
     if (!firebase.apps.length) {
-      if (!resolvedFirebaseConfig) throw new Error('Firebase 설정이 없습니다. /js/firebase-config.js 로드 여부를 확인하세요.');
+      if (!resolvedFirebaseConfig) throw new Error('Firebase 설정이 없습니다. 서버 환경변수(FIREBASE_WEB_*)를 확인하세요.');
       firebase.initializeApp(resolvedFirebaseConfig);
     }
     firebase.auth().languageCode = 'ko';
