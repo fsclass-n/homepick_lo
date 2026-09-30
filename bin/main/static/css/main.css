@@ -1,0 +1,264 @@
+@charset "utf-8";
+@import url(common.css);
+
+/* 1. 섹션 1 배경 이미지 지정 */
+.hero-section {
+    background: url('/images/hero-bg.jpg') no-repeat center center / cover;
+}
+
+/* 2. 지표 카드 및 뱃지 스타일 */
+.stat-card {
+    width: 100%;
+    max-width: 220px;
+}
+
+.stat-badge {
+    background-color: #c5a443; /* 골드 포인트 컬러 */
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+/* 3. 자간 유틸리티 */
+.tracking-tight { letter-spacing: -1.5px; }
+.tracking-wide  { letter-spacing: 1.5px; font-size: 0.75rem; color: rgba(255, 255, 255, 0.7); }
+
+/* 4. 마우스 스크롤 인디케이터 */
+.mouse-icon {
+    width: 22px;
+    height: 36px;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    position: relative;
+}
+
+.wheel {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 6px;
+    background-color: #ffffff;
+    border-radius: 2px;
+    animation: scrollWheel 1.8s infinite ease-in-out;
+}
+
+@keyframes scrollWheel {
+    0%   { opacity: 1; top: 6px; }
+    100% { opacity: 0; top: 18px; }
+}
+
+/* 5. 부드러운 스크롤 이동 (섹션 전환용) */
+html {
+    scroll-behavior: smooth;
+}
+
+
+/* ================= Section 2 탭 및 랭킹 스타일 ================= */
+
+/* 1. 커스텀 탭 버튼 */
+.nav-link-custom {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    font-size: 0.95rem;
+    color: #8c8c8c;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-link-custom:hover {
+    color: #333333;
+}
+
+.nav-link-custom.active {
+    color: #0082a6; /* 레퍼런스 스타일 포인트 딥 시안 */
+    font-weight: 700;
+}
+
+/* 2. 1위 뱃지 디자인 */
+.badge-rank {
+    width: 60px;
+    height: 42px;
+    background-color: #0082a6;
+    font-size: 1.05rem;
+    border-radius: 0 0 8px 0;
+}
+
+/* 3. 이미지 규격 및 비율 고정 */
+.property-main-thumb img {
+    height: 400px;
+}
+
+.property-sub-thumb {
+    height: 170px;
+}
+
+/* 4. 마우스 호버 확대 인터랙션 */
+.transition-zoom {
+    transition: transform 0.35s ease;
+}
+
+.property-main-thumb:hover img,
+.property-sub-card:hover img {
+    transform: scale(1.04);
+}
+
+/* 5. 모바일 반응형 조절 */
+@media (max-width: 991px) {
+    .property-main-thumb img {
+        height: 280px;
+    }
+    .property-sub-thumb {
+        height: 130px;
+    }
+}
+
+/* ================= Section 3 패럴랙스 배경 & 카드 스타일 ================= */
+
+.section-ai-pick {
+    min-height: 850px;
+    background-color: #1a1b1e;
+}
+
+/* 1. 패럴랙스 배경 이미지 레이어 */
+.ai-parallax-bg-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    /* 1. 배경 이미지 명시적 지정 */
+    background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    
+    /* 2. 패럴랙스 여백 및 렌더링 최적화 */
+    transform: scale(1.2);
+    will-change: transform;
+    pointer-events: none;
+    z-index: 0; /* 배경 레이어 최하단 배치 */
+}
+
+/* 2. 타이포그래피 */
+.fw-black { font-weight: 900; }
+.tracking-wider { letter-spacing: 2px; }
+.line-height-1 { line-height: 1.05; }
+
+/* 3. 고스트 버튼 */
+.btn-ghost {
+    display: inline-block;
+    color: #ffffff;
+    background-color: transparent;
+    border: 2px solid #ffffff;
+    padding: 10px 32px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-ghost:hover {
+    color: #1e1f23;
+    background-color: #ffffff;
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+/* 4. 폴라로이드 사진 카드 갤러리 */
+.photo-gallery-container {
+    height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.polaroid-card {
+    position: absolute;
+    background: #ffffff;
+    padding: 10px 10px 18px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    will-change: transform;
+    transition: box-shadow 0.3s ease;
+}
+
+.polaroid-img-wrapper {
+    overflow: hidden;
+    background-color: #eee;
+}
+
+.polaroid-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.polaroid-caption {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #333333;
+}
+
+/* 개별 카드 초기 배치 및 고유 각도 정의 */
+.card-left {
+    width: 210px;
+    top: 50px;
+    left: 8%;
+    z-index: 2;
+    --base-deg: -10deg;
+}
+.card-left .polaroid-img-wrapper { height: 260px; }
+
+.card-center {
+    width: 190px;
+    top: 15px;
+    left: 40%;
+    z-index: 1;
+    --base-deg: 3deg;
+}
+.card-center .polaroid-img-wrapper { height: 220px; }
+
+.card-right {
+    width: 250px;
+    bottom: 25px;
+    right: 5%;
+    z-index: 3;
+    --base-deg: 8deg;
+}
+.card-right .polaroid-img-wrapper { height: 310px; }
+
+/* 5. 스크롤 등장 모션 유틸리티 */
+.scroll-fade {
+    opacity: 0;
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.scroll-left  { transform: translateX(-40px); }
+.scroll-right { transform: translateX(40px); }
+
+.scroll-fade.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* 반응형 모바일 대응 */
+@media (max-width: 991px) {
+    .photo-gallery-container {
+        height: 380px;
+        margin-top: 20px;
+    }
+    .card-left   { width: 150px; left: 2%;  top: 30px; }
+    .card-left .polaroid-img-wrapper { height: 180px; }
+    .card-center { width: 140px; left: 32%; top: 10px; }
+    .card-center .polaroid-img-wrapper { height: 160px; }
+    .card-right  { width: 170px; right: 2%; bottom: 10px; }
+    .card-right .polaroid-img-wrapper { height: 210px; }
+}

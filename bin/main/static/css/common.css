@@ -1,0 +1,169 @@
+@charset "utf-8";
+
+/* ============================================
+   common.css — 공통 CSS 변수 및 기반 스타일
+   Homepick 부동산 플랫폼
+   ============================================ */
+
+/* ==========================================
+   Font CDN
+   ========================================== */
+/* 구글: noto sans kr */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap');
+/* 눈누: 나눔스퀘어 */
+@import url('https://cdn.rawgit.com/moonspam/NanumSquare/master/nanumsquare.css');
+/* 폰트어썸 */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+
+/* ==========================================
+   Style Guides (Design Tokens)
+   ========================================== */
+:root {
+  /* Font Family & Sizes */
+  --ff: 'NanumSquare', "Noto Sans KR", sans-serif;
+  --fz-xs: 0.75rem; 
+  --fz-sm: 0.875rem; 
+  --fz-md: 1rem; 
+  --fz-lg: 1.125rem; 
+  --fz-xl: 1.25rem; 
+  --fz-xxl: 1.5rem;
+
+  /* Brand Colors */
+  --color-primary: #006AC9;          /* 홈픽 메인 블루 */
+  --color-primary-dark: #0056a3;     /* 호버/액티브 블루 */
+  --color-secondary: #6C757D;
+  --color-accent: #FF600D;           /* 포인트 오렌지 */
+  --color-white: #F8F9FA;
+  --color-pure-white: #FFFFFF;
+  --color-text: #333333;
+  --color-text-muted: #888888;
+  --color-border: #E0E4E8;
+  --color-disabled: #D1D7DC;
+}
+
+   Reset & Base Styles
+   ========================================== */
+* {
+  box-sizing: border-box;
+}
+
+body, h1, h2, h3, h4, p, ul, ol, figure, blockquote {
+  margin: 0;
+}
+
+ul, ol {
+  list-style: none;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+  color: var(--color-text);
+  transition: color 0.2s ease;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+body {
+  font: var(--fz-md)/1.6 var(--ff);
+  color: var(--color-text);
+  background-color: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── 공통 Reset/Base ── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* ============================================
+   ▼ 커스텀 마우스 커서 효과
+   ============================================ */
+
+/* 데스크탑에서 브라우저 기본 커서 숨기기 (푸터 영역 안에서만) */
+@media (pointer: fine) {
+    .homepick-footer {
+        cursor: none;
+    }
+    .homepick-footer a, 
+    .homepick-footer button, 
+    .homepick-footer select, 
+    .homepick-footer input, 
+    .homepick-footer .custom-select-list li, 
+    .homepick-footer .footer-family-select {
+        cursor: none !important;
+    }
+}
+
+/* 메인 커서 (작은 점) */
+.custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate3d(0, 0, 0);
+    margin: -3px 0 0 -3px; /* 중심점 맞추기 */
+    opacity: 0; /* 기본적으로 숨김 (푸터 진입 시 표시) */
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.1s ease;
+}
+
+/* 트레일 커서 (따라다니는 큰 원) */
+.custom-cursor-follower {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--color-accent);
+    background-color: rgba(252, 163, 17, 0.1);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate3d(0, 0, 0);
+    margin: -16px 0 0 -16px; /* 중심점 맞추기 */
+    opacity: 0; /* 기본적으로 숨김 (푸터 진입 시 표시) */
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, width 0.3s ease, height 0.3s ease, margin 0.3s ease, background-color 0.3s ease;
+}
+
+/* 푸터 진입 시 표시될 때 사용 (JS에서 클래스 제어) */
+.custom-cursor.visible,
+.custom-cursor-follower.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 링크 등 호버 시 효과 */
+.custom-cursor.active {
+    opacity: 0; /* 메인 점 숨김 */
+}
+
+.custom-cursor-follower.active {
+    width: 50px;
+    height: 50px;
+    margin: -25px 0 0 -25px;
+    background-color: rgba(252, 163, 17, 0.2);
+    border-color: transparent;
+    backdrop-filter: invert(10%);
+}
+
+/* ============================================
+   ▼ 모바일 환경 마우스 커서 효과 숨기기
+   ============================================ */
+@media (max-width: 991.98px) {
+    .custom-cursor,
+    .custom-cursor-follower {
+        display: none !important;
+    }
+}

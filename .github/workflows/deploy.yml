@@ -32,11 +32,11 @@ jobs:
     # 4. TiDB 환경 변수 주입 후 Gradle 빌드 및 테스트 수행
     - name: Build with Gradle
       env:
-        TIDB_HOST: ${{ secrets.TIDB_HOST }}
-        TIDB_PORT: ${{ secrets.TIDB_PORT }}
-        TIDB_DATABASE: ${{ secrets.TIDB_DATABASE }}
-        TIDB_USERNAME: ${{ secrets.TIDB_USERNAME }}
-        TIDB_PASSWORD: ${{ secrets.TIDB_PASSWORD }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_DATABASE: ${{ secrets.DB_DATABASE }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       run: ./gradlew build
 
     # 5. Render에 사용될 Dockerfile 빌드 정상 여부 사전 검증

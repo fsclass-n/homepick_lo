@@ -5,7 +5,6 @@ import com.onrender.homepick.dto.RegisterRequest;
 import com.onrender.homepick.repository.JdbcMemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +20,6 @@ import java.util.Map;
 public class RegisterController{
 
     private final JdbcMemberRepository repository;
-    private final PasswordEncoder passwordEncoder;
 
     @Value("${firebase.web.api-key:}")
     private String firebaseApiKey;
@@ -48,7 +46,6 @@ public class RegisterController{
             model.addAttribute("error", "이미 사용 중인 이메일입니다.");
             return "member/register";
         }
-        req.setPassword(passwordEncoder.encode(req.getPassword()));
         repository.save(req);
 
         System.out.println(">> 신규 회원가입 등록 완료: " + req.getName() + " (" + req.getEmail() + ")");

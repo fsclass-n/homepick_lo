@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/python,java,visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=python,java,visualstudiocode
+# Created by https://www.toptal.com/developers/gitignore/api/java,python,visualstudiocode
+# Edit at https://www.toptal.com/developers/gitignore?templates=java,python,visualstudiocode
 
 ### Java ###
 # Compiled class file
@@ -38,9 +38,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-bin/
 build/
-.settings/
 develop-eggs/
 dist/
 downloads/
@@ -219,13 +217,11 @@ pyrightconfig.json
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/python,java,visualstudiocode
+# End of https://www.toptal.com/developers/gitignore/api/java,python,visualstudiocode
 
 HELP.md
 .gradle
-build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-
 **/firebase-config.js

@@ -1,7 +1,8 @@
 # ----------------------------------------------------
 # 1. Build Stage: Gradle 빌드 수행
+# *.java -> (컴파일) -> .class -> 패키지 -> *.jar
 # ----------------------------------------------------
-# 기술 스택(JDK 21)에 맞춰 자바 버전을 21로 변경
+# Alpine Linux 위에 Java 21 JDK가 설치된 Eclipse Temurin Docker 이미지
 FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app

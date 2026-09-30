@@ -6,8 +6,14 @@ CREATE DATABASE homepick_db;
 USE homepick_db;
 
 -- 테이블 생성
--- (구버전 email 기반 member 테이블은 더 이상 사용하지 않음. 기존 DB 전환은 docs/member-table-migration.md 참고)
--- 동일 휴대폰/본인인증(firebase_uid)으로 여러 아이디 가입 허용 → phone, firebase_uid 는 UNIQUE 아님
+CREATE TABLE IF NOT EXISTS member (
+    email VARCHAR(50) PRIMARY KEY,
+    password VARCHAR(100) NOT NULL,
+    name VARCHAR(20) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) AUTO_ID_CACHE=1;
+
+-- member 테이블 생성 (ver.2)
 CREATE TABLE IF NOT EXISTS member (
     member_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id         VARCHAR(50) NOT NULL UNIQUE,

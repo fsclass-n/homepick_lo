@@ -16,6 +16,7 @@
     <!-- 상단 고정 반응형 헤더 (Bootstrap 5 Flexbox 레이아웃 적용) -->
     <header id="header" class="sticky-top" th:fragment="headerFragment">
         <div class="container-fluid px-3 px-md-4 px-xl-5 d-flex align-items-center justify-content-between">
+            
             <!-- 로고 -->
             <h1 class="logo m-0 text-center" style="letter-spacing: 0.3rem;">
                 <a href="index.html" th:href="@{/}" class="text-decoration-none text-white">HOMEPICK<span class="d-block fs-6" style="letter-spacing: normal;">홈픽</span></a>
@@ -80,7 +81,7 @@
                             <i class="fa-solid fa-chevron-right arrow-icon d-lg-none text-secondary"></i>
                         </a>
                         <ul class="depth2 list-unstyled m-0 p-0">
-                            <li><a href="templates/sub/faq.html" th:href="@{/qna}" class="text-decoration-none">자유 게시판 QnA</a></li>
+                            <li><a href="templates/qna/list.html" th:href="@{/qna}" class="text-decoration-none">자유 게시판 QnA</a></li>
                             <li><a href="#" class="text-decoration-none">1:1 문의 게시판</a></li>
                         </ul>
                     </li>

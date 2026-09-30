@@ -89,7 +89,7 @@
         <div class="card mx-auto shadow-sm p-4 border-0" style="max-width: 460px;">
             <div th:if="${user != null}">
                 <h5 class="fw-bold mb-1">인증 세션 정보</h5>
-                <p class="text-muted small mb-3">접속 계정: <span th:text="${user.userId}">user@homepick.com</span></p>
+                <p class="text-muted small mb-3">접속 계정: <span th:text="${user.email}">user@homepick.com</span></p>
                 <a href="member/admin.html" th:href="@{/member/admin}" class="btn btn-outline-primary btn-sm">전체 등록 회원 확인하기</a>
             </div>
 

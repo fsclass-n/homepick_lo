@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 현재 보고 있는 글 번호 안내 -->
+    <h2 th:text="|현재 ${postId}번 게시글 상세 페이지입니다.|">현재 1번 게시글 상세 페이지입니다.</h2>
+
+    <hr>
+
+    <!-- 1~5번 게시글 상세 페이지 이동 링크 -->
+    <div>
+        <a th:href="@{/th/ex07/{id}(id=1)}">[1번 글]</a>
+        <a th:href="@{/th/ex07/{id}(id=2)}">[2번 글]</a>
+        <a th:href="@{/th/ex07/{id}(id=3)}">[3번 글]</a>
+        <a th:href="@{/th/ex07/{id}(id=4)}">[4번 글]</a>
+        <a th:href="@{/th/ex07/{id}(id=5)}">[5번 글]</a>
+    </div>
+</body>
+
+</html>

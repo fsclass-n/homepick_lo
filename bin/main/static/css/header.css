@@ -1,0 +1,290 @@
+@charset "utf-8";
+
+/* ==========================================================================
+   Bootstrap 5 최적화 반응형 상단 고정 헤더 스타일 (header_bs.css)
+   - 부트스트랩 5 플렉스박스 레이아웃 및 유틸리티 기반
+   - 중복 코드 최소화 및 모듈화 디자인
+   ========================================================================== */
+
+/* Header Base & Fixed Position */
+#header {
+    background: var(--color-primary);
+    transition: background-color 0.3s ease;
+}
+
+.container-fluid {
+    height: 70px;
+}
+
+/* Logo */
+.logo {
+    font-size: 1.1rem;
+}
+
+
+/* Mobile Drawer Overlay & GNB Container */
+.menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+.menu-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.gnb {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    z-index: 1050;
+    width: 280px;
+    max-width: 85%;
+    height: 100vh;
+    background: #222;
+    transition: right 0.3s ease-in-out;
+    overflow-y: auto; /* 모바일 서브메뉴 펼침 시 스크롤 되도록 추가 */
+}
+
+.gnb.active {
+    right: 0;
+}
+
+/* Depth 1 & Depth 2 Navigation */
+.depth1 > li {
+    border-bottom: 1px solid #c1d86d;
+}
+
+.depth1 > li > a {
+    font-size: 1.1rem;
+}
+
+#header .depth1 > li > a:hover {
+    color: #ccc;
+}
+
+/* Accordion Arrow Icon */
+.arrow-icon {
+    font-size: 0.85rem;
+    color: #777;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.depth1 > li.open > a .arrow-icon {
+    color: var(--color-white);
+    transform: rotate(90deg);
+}
+
+/* Submenu Dropdown (Depth 2) */
+.depth2 {
+    max-height: 0;
+    overflow: hidden;
+    line-height: 1.5; /* 서브 메뉴 사이 줄 간격 축소 */
+    transition: max-height 0.3s ease;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.depth1 > li.open .depth2,
+.depth2.active {
+    max-height: 500px;
+}
+
+#header .depth2 li a {
+    display: block;
+    color: #aaa;
+    padding: 5px 30px; /* 서브 메뉴 사이 줄 간격(상하 패딩) 축소 */
+    font-size: 0.95rem;
+}
+
+/* 모바일 서브 메뉴 위 아래 여백 넓히기 */
+#header .depth2 li:first-child a {
+    padding-top: 20px;
+}
+#header .depth2 li:last-child a {
+    padding-bottom: 20px;
+}
+
+#header .depth2 li a:hover {
+    color: #fff;
+}
+
+
+/* Mobile Hamburger Button */
+.btn-hamburger {
+    border: none;
+    padding: 5px;
+    background: transparent;
+    position: relative; /* 햄버거 버튼이 사이드바 위에 뜨도록 추가 */
+    z-index: 1060;      /* 햄버거 버튼이 사이드바 위에 뜨도록 추가 */
+}
+
+.btn-hamburger span {
+    display: block;
+    width: 26px;
+    height: 3px;
+    margin: 5px 0;
+    border-radius: 3px;
+    background: var(--color-white);
+    transition: all 0.3s ease-in-out; /* 햄버거 애니메이션을 위한 트랜지션 추가 */
+}
+
+/* 햄버거 버튼 클릭 시 X 모양으로 바뀌는 애니메이션 추가 */
+.btn-hamburger.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+.btn-hamburger.active span:nth-child(2) {
+    opacity: 0; /* 가운데 줄 숨김 */
+}
+.btn-hamburger.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Desktop SNS Icon Hover Effect & Util */
+.sns-link {
+    position: relative;
+}
+
+.sns-link span {
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.sns-link::before {
+    content: '\f167';
+    font-family: 'Font Awesome 6 Brands';
+    font-size: 28px;
+    color: #f00;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+
+.sns:hover .sns-link::before {
+    opacity: 1;
+}
+
+.sns:hover span {
+    opacity: 0;
+}
+
+
+/* ==========================================================================
+   Responsive Breakpoints (Min-width Queries)
+   ========================================================================== */
+
+/* Medium Devices (>= 768px) */
+@media (min-width: 768px) {
+    .logo {
+        font-size: 1.375rem;
+    }
+    .gnb {
+        width: 300px;
+    }
+}
+
+/* Large Devices (>= 992px) */
+@media (min-width: 992px) {
+    .container-fluid {
+        height: 95px;
+    }
+
+    .logo {
+        width: 207px;
+    }
+
+    .gnb {
+        position: static;
+        width: auto;
+        height: auto;
+        background: transparent;
+        overflow-y: visible;
+    }
+
+
+
+    .depth1 > li {
+        width: 140px;
+        border-bottom: none;
+    }
+
+    .depth1 > li > a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        border-bottom: 2px solid #c78f66;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .depth1 > li > a:hover::after {
+        transform: scaleX(1);
+    }
+
+    .depth2 {
+        position: absolute;
+        top: 85px;
+        width: 100%;
+        height: 0;
+        max-height: none;
+        overflow: hidden;
+        padding-top: 50px;
+        z-index: 10;
+        background: transparent;
+        transition: height 0.3s ease;
+        line-height: 2.2; /* 데스크탑 서브 메뉴 줄 간격 복구 */
+    }
+
+    .depth2.active {
+        height: 200px;
+    }
+
+    #header .depth2 li a,
+    #header .depth2 li:first-child a,
+    #header .depth2 li:last-child a {
+        display: inline;
+        font-size: inherit;
+        color: #555;
+        padding: 0; /* 데스크탑에서는 모바일 패딩 초기화 */
+    }
+
+    #header .depth2 li a:hover {
+        color: #111;
+    }
+
+    /* Submenu Full Background Dropdown */
+    .sub-bg {
+        position: absolute;
+        top: 95px;
+        left: 0;
+        width: 100%;
+        height: 0;
+        background: #ddd;
+        transition: height 0.3s ease;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .sub-bg.active {
+        height: 220px;
+    }
+}
+
+/* Extra Large Devices (>= 1200px) */
+@media (min-width: 1200px) {
+    .depth1 {
+        gap: 75px;
+    }
+
+    .depth1 > li {
+        width: 160px;
+    }
+}

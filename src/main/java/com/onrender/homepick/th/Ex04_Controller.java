@@ -11,8 +11,8 @@ public class Ex04_Controller {
     
     @GetMapping("/th/ex04")
     public String ex04(Model model) {
-        // login 객체 추가 (id=10L 지정)
-        model.addAttribute("login", new Ex04_Dto(10L, ""));
+        // link 객체 추가 (id=10L 지정)
+        model.addAttribute("link", new Ex04_Dto(10L));
         return "th/ex04";
     }
 
@@ -36,6 +36,4 @@ public class Ex04_Controller {
         model.addAttribute("faqId", id);
         return "th/ex04_faq";
     }
-
-
 }

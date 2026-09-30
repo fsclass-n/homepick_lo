@@ -9,4 +9,7 @@ public class RegisterRequest{
     private String email;
     private String password;
     private String name;
+
+    // 기본 생성자
+    // RegisterRequest(){}
 }

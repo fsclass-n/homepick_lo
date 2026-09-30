@@ -12,14 +12,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemoryMemberRepository{
 
     // Key: email, Value: 가입 정보
+    // Map<K, V>
     private final Map<String, RegisterRequest> store = new ConcurrentHashMap<>();
 
-    // 이메일 중복 가능 여부 확인
     public boolean existsByEmail(String email){
+        // 존재 여부 확인: containsKey(Key)
         return store.containsKey(email);
     }
 
+    // 가입 정보 저장
     public void save(RegisterRequest member){
+        // 데이터 추가(수정): put(Key, Value)
         store.put(member.getEmail(), member);
     }
 

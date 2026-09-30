@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홈픽 - HomePick</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* 이미지 상단 헤더 컬러 반영 */
+        .hp-header {
+            background-color: #0066cc; /* 홈픽 시그니처 블루 */
+        }
+        .hp-nav-link {
+            color: #ffffff;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            transition: opacity 0.2s;
+        }
+        .hp-nav-link:hover {
+            color: #e0e0e0;
+            opacity: 0.9;
+        }
+        .hp-sub-link {
+            color: #ffffff;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .hp-sub-link:hover {
+            color: #d1e3ff;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- 상단 헤더 내비게이션 (첨부 이미지 디자인) -->
+    <header class="hp-header text-white py-3 px-4 shadow-sm">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            
+            <!-- 1. 좌측 로고 -->
+            <a href="index.html" th:href="@{/}" class="text-white text-decoration-none d-flex flex-column align-items-center">
+                <span class="fs-5 fw-bold tracking-wide" style="letter-spacing: 2px;">HOMEPICK</span>
+                <span style="font-size: 0.75rem; margin-top: -3px;">홈픽</span>
+            </a>
+
+            <!-- 2. 중앙 메인 메뉴 -->
+            <nav class="d-none d-md-flex gap-4">
+                <a href="#" class="hp-nav-link">매물 목록</a>
+                <a href="#" class="hp-nav-link">시장분석 · AI추천</a>
+                <a href="#" class="hp-nav-link">마이 홈픽</a>
+                <a href="#" class="hp-nav-link">고객센터</a>
+            </nav>
+
+            <!-- 3. 우측 인증/계정 영역 -->
+            <div class="d-flex align-items-center gap-3">
+                
+                <!-- [미로그인 상태] (user == null) -->
+                <th:block th:if="${user == null}">
+                    <a href="#" class="hp-sub-link">SNS</a>
+                    <span class="text-white-50 small">·</span>
+                    <!-- 정적 파일 열기 시 member 하위 폴더 이동 / 서버 구동 시 URL 매핑 -->
+                    <a href="member/login.html" th:href="@{/member/login}" class="hp-sub-link">로그인</a>
+                    <a href="member/register.html" th:href="@{/member/register}" class="hp-sub-link">회원가입</a>
+                </th:block>
+
+                <!-- [로그인 상태] (user != null) -->
+                <th:block th:if="${user != null}">
+                    <span class="small">
+                        <strong th:text="${user.name}">홍길동</strong>님 환영합니다!
+                    </span>
+                    <span class="text-white-50 small">·</span>
+                    <a href="member/list.html" th:href="@{/member/list}" class="hp-sub-link">회원목록</a>
+                    <span class="text-white-50 small">·</span>
+                    <a href="index.html" th:href="@{/member/logout}" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.8rem;">로그아웃</a>
+                </th:block>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="container py-5 text-center">
+        <h2 class="fw-bold mb-3 text-secondary">부동산 AI 매칭 & 분석 플랫폼</h2>
+        <p class="text-muted mb-4">원하는 지역과 조건을 통해 맞춤형 매물을 찾아보세요.</p>
+
+        <!-- 로그인 안내 카드 -->
+        <div class="card mx-auto shadow-sm p-4 border-0" style="max-width: 460px;">
+            <div th:if="${user != null}">
+                <h5 class="fw-bold mb-1">인증 세션 정보</h5>
+                <p class="text-muted small mb-3">접속 계정: <span th:text="${user.email}">user@homepick.com</span></p>
+                <a href="member/admin.html" th:href="@{/member/admin}" class="btn btn-outline-primary btn-sm">전체 등록 회원 확인하기</a>
+            </div>
+
+            <div th:if="${user == null}">
+                <p class="text-muted small mb-3">로그인 후 홈픽의 맞춤 AI 추천 서비스를 이용해 보세요.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="member/login.html" th:href="@{/member/login}" class="btn btn-primary px-4">로그인</a>
+                    <a href="member/register.html" th:href="@{/member/register}" class="btn btn-outline-primary px-4">회원가입</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
