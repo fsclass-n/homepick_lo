@@ -54,13 +54,7 @@ public class JdbcMemberRepository{
     // 아이디로 로그인용 회원 조회 (user_id, password_hash, name)
     public Optional<MemberJoinRequest> findByUserId(String userId){
         String sql = "SELECT user_id, password_hash, name FROM member WHERE user_id = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-                    MemberJoinRequest member = new MemberJoinRequest();
-                    member.setUserId(rs.getString("user_id"));
-                    member.setPassword(rs.getString("password_hash"));
-                    member.setName(rs.getString("name"));
-                    return member;
-                }, userId)
+        return jdbcTemplate.query(sql, (rs, rowNum) -> toMemberJoinRequest(rs.getString("user_id"), rs.getString("password_hash"), rs.getString("name")), userId)
                 .stream()
                 .findFirst();
     }
@@ -71,6 +65,23 @@ public class JdbcMemberRepository{
         jdbcTemplate.update(sql,
                 member.getUserId(), member.getPassword(), member.getName(),
                 member.getBirth(), member.getGender(), member.getPhone(), member.getFirebaseUid());
+    }
+
+    // SNS 계정으로 회원 조회
+    public Optional<MemberJoinRequest> findBySnsIdentity(String snsType, String snsId){
+        String sql = "SELECT user_id, password_hash, name FROM member WHERE sns_type = ? AND sns_id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> toMemberJoinRequest(rs.getString("user_id"), rs.getString("password_hash"), rs.getString("name")), snsType, snsId)
+                .stream()
+                .findFirst();
+    }
+
+    // SNS 회원가입 (최초 OAuth 로그인)
+    public void saveSocialMember(MemberJoinRequest member){
+        String sql = "INSERT INTO member (user_id, password_hash, name, birth, gender, phone, firebase_uid, email, sns_type, sns_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        jdbcTemplate.update(sql,
+                member.getUserId(), member.getPassword(), member.getName(),
+                member.getBirth(), member.getGender(), member.getPhone(), member.getFirebaseUid(),
+                member.getEmail(), member.getSnsType(), member.getSnsId());
     }
 
     // (진단용) 현재 연결된 DB 이름과 member 테이블 컬럼 목록
@@ -85,6 +96,14 @@ public class JdbcMemberRepository{
     private boolean count(String sql, String value){
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, value);
         return count != null && count > 0;
+    }
+
+    private MemberJoinRequest toMemberJoinRequest(String userId, String passwordHash, String name){
+        MemberJoinRequest member = new MemberJoinRequest();
+        member.setUserId(userId);
+        member.setPassword(passwordHash);
+        member.setName(name);
+        return member;
     }
 
     // 전체 회원 목록 조회

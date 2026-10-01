@@ -11,10 +11,15 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig{
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) throws Exception{
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/member/login")
+                        .redirectionEndpoint(redirection -> redirection.baseUri("/sns/*"))
+                        .successHandler(oAuth2LoginSuccessHandler)
+                )
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable());
         return http.build();

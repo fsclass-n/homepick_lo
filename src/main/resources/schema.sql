@@ -5,15 +5,7 @@ CREATE DATABASE homepick_db;
 -- DB 사용
 USE homepick_db;
 
--- 테이블 생성
-CREATE TABLE IF NOT EXISTS member (
-    email VARCHAR(50) PRIMARY KEY,
-    password VARCHAR(100) NOT NULL,
-    name VARCHAR(20) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-) AUTO_ID_CACHE=1;
-
--- member 테이블 생성 (ver.2)
+-- member 테이블 생성 (현재 사용 버전)
 CREATE TABLE IF NOT EXISTS member (
     member_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id         VARCHAR(50) NOT NULL UNIQUE,
@@ -22,11 +14,15 @@ CREATE TABLE IF NOT EXISTS member (
     birth           CHAR(8) NOT NULL,
     gender          CHAR(1) NOT NULL,
     phone           VARCHAR(20) NOT NULL,
+    email           VARCHAR(100) NULL,
     firebase_uid    VARCHAR(128) NOT NULL,
+    sns_type        VARCHAR(20) NULL,
+    sns_id          VARCHAR(100) NULL,
     role            VARCHAR(20) DEFAULT 'USER',
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_member_phone (phone),
-    INDEX idx_member_firebase_uid (firebase_uid)
+    INDEX idx_member_firebase_uid (firebase_uid),
+    UNIQUE KEY uq_member_sns (sns_type, sns_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_ID_CACHE=1;
 
 

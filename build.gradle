@@ -37,6 +37,9 @@ dependencies {
 
 	// 3. 비밀번호 BCrypt 보안
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	// 4. SNS OAuth2 로그인 (Google / Naver / Kakao)
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 }
 
 tasks.named('test') {
