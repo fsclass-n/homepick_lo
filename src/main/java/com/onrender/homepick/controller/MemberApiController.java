@@ -1,4 +1,3 @@
-// MemberApiController.java
 package com.onrender.homepick.controller;
 
 import com.onrender.homepick.dto.MemberJoinRequest;
@@ -8,6 +7,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +25,7 @@ public class MemberApiController{
     private static final String PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*#?&]{8,30}$";
 
     private final JdbcMemberRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody MemberJoinRequest req){
@@ -37,6 +38,7 @@ public class MemberApiController{
             if (repository.existsByUserId(req.getUserId())) {
                 return fail(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다.");
             }
+            req.setPassword(passwordEncoder.encode(req.getPassword()));
             repository.saveMember(req);
         } catch (DuplicateKeyException e) {
             return fail(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다.");

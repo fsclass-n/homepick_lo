@@ -34,6 +34,9 @@ dependencies {
 
 	// 2. TiDB 연결용 MySQL 드라이버
 	implementation 'com.mysql:mysql-connector-j'
+
+	// 3. 비밀번호 BCrypt 보안
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 }
 
 tasks.named('test') {
