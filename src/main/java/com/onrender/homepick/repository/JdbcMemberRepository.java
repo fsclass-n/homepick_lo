@@ -53,8 +53,10 @@ public class JdbcMemberRepository{
 
     // 아이디로 로그인용 회원 조회 (user_id, password_hash, name)
     public Optional<MemberJoinRequest> findByUserId(String userId){
-        String sql = "SELECT user_id, password_hash, name FROM member WHERE user_id = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> toMemberJoinRequest(rs.getString("user_id"), rs.getString("password_hash"), rs.getString("name")), userId)
+        String sql = "SELECT user_id, password_hash, name, email FROM member WHERE user_id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> toMemberJoinRequest(
+                        rs.getString("user_id"), rs.getString("password_hash"), rs.getString("name"), rs.getString("email")),
+                userId)
                 .stream()
                 .findFirst();
     }
@@ -69,8 +71,10 @@ public class JdbcMemberRepository{
 
     // SNS 계정으로 회원 조회
     public Optional<MemberJoinRequest> findBySnsIdentity(String snsType, String snsId){
-        String sql = "SELECT user_id, password_hash, name FROM member WHERE sns_type = ? AND sns_id = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> toMemberJoinRequest(rs.getString("user_id"), rs.getString("password_hash"), rs.getString("name")), snsType, snsId)
+        String sql = "SELECT user_id, password_hash, name, email FROM member WHERE sns_type = ? AND sns_id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> toMemberJoinRequest(
+                        rs.getString("user_id"), rs.getString("password_hash"), rs.getString("name"), rs.getString("email")),
+                snsType, snsId)
                 .stream()
                 .findFirst();
     }
@@ -82,6 +86,17 @@ public class JdbcMemberRepository{
                 member.getUserId(), member.getPassword(), member.getName(),
                 member.getBirth(), member.getGender(), member.getPhone(), member.getFirebaseUid(),
                 member.getEmail(), member.getSnsType(), member.getSnsId());
+    }
+
+    // SNS 로그인 시 최신 프로필 값 보강 (기존 계정 자동 업데이트)
+    public void updateSocialProfile(String userId, String name, String email, String snsType, String snsId){
+        String sql = "UPDATE member " +
+                "SET name = COALESCE(?, name), " +
+                "    email = COALESCE(?, email), " +
+                "    sns_type = COALESCE(sns_type, ?), " +
+                "    sns_id = COALESCE(sns_id, ?) " +
+                "WHERE user_id = ?";
+        jdbcTemplate.update(sql, name, email, snsType, snsId, userId);
     }
 
     // (진단용) 현재 연결된 DB 이름과 member 테이블 컬럼 목록
@@ -98,11 +113,12 @@ public class JdbcMemberRepository{
         return count != null && count > 0;
     }
 
-    private MemberJoinRequest toMemberJoinRequest(String userId, String passwordHash, String name){
+    private MemberJoinRequest toMemberJoinRequest(String userId, String passwordHash, String name, String email){
         MemberJoinRequest member = new MemberJoinRequest();
         member.setUserId(userId);
         member.setPassword(passwordHash);
         member.setName(name);
+        member.setEmail(email);
         return member;
     }
 

@@ -45,7 +45,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String snsType = provider.toLowerCase();
         String snsId = providerId;
         String userId = buildUserId(snsType, snsId);
-        String displayName = truncate(extractDisplayName(snsType, attributes), 50);
+        String extractedDisplayName = truncate(extractDisplayName(snsType, attributes), 50);
+        String displayName = extractedDisplayName;
         String email = truncate(extractEmail(snsType, attributes), 100);
         String gender = normalizeGender(extractGender(snsType, attributes));
         String phone = normalizePhone(extractPhone(snsType, attributes));
@@ -73,7 +74,16 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                 repository.saveSocialMember(member);
             } else {
                 userId = existing.getUserId();
-                if (existing.getName() != null && !existing.getName().isBlank()) {
+                repository.updateSocialProfile(
+                        userId,
+                        extractedDisplayName.isBlank() ? null : extractedDisplayName,
+                        email.isBlank() ? null : email,
+                        snsType,
+                        truncate(snsId, 100)
+                );
+                if (!extractedDisplayName.isBlank()) {
+                    displayName = extractedDisplayName;
+                } else if (existing.getName() != null && !existing.getName().isBlank()) {
                     displayName = existing.getName();
                 }
             }
@@ -110,6 +120,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             Map<String, Object> profile = getMap(kakaoAccount, "profile");
             Map<String, Object> properties = getMap(attrs, "properties");
             return firstNonBlank(
+                    stringValue(kakaoAccount.get("name")),
                     stringValue(profile.get("nickname")),
                     stringValue(properties.get("nickname")),
                     stringValue(kakaoAccount.get("email"))
