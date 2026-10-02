@@ -2,10 +2,10 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Spring Boot-HomepickApplication<homepick>",
+            "name": "Spring Boot-HomepickApplication<homepick_lo>",
             "request": "launch",
             "mainClass": "com.onrender.homepick.HomepickApplication",
-            "projectName": "homepick",
+            "projectName": "homepick_lo",
             "serverReadyAction": {
                 "pattern": "Started HomepickApplication in",
                 "uriFormat": "http://localhost:8080",
