@@ -1,0 +1,127 @@
+@charset "utf-8";
+
+/* ==========================================
+   AI 맞춤 매물 추천 페이지
+   - common.css 디자인 토큰(--color-primary, --color-accent) 사용
+   ========================================== */
+
+.ai-page {
+    background-color: var(--color-white);
+}
+
+/* 1. 히어로: 헤더(메인 블루)와 이어지는 딥 블루 그라데이션 */
+.ai-hero {
+    background: linear-gradient(135deg, #0b1f3a 0%, #0d3b73 55%, var(--color-primary) 100%);
+    padding-bottom: 5rem; /* 카드가 겹쳐 올라올 공간 */
+}
+
+.ai-hero-glow {
+    background:
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.08) 0, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255, 96, 13, 0.12) 0, transparent 45%);
+    pointer-events: none;
+}
+
+.ai-hero-icon {
+    font-size: 2.25rem;
+    color: #ffd27a;
+    animation: aiTwinkle 2.4s ease-in-out infinite;
+}
+
+.ai-hero-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    letter-spacing: -1px;
+}
+
+.ai-hero-desc {
+    font-size: var(--fz-sm);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes aiTwinkle {
+    0%, 100% { transform: scale(1);    opacity: 1; }
+    50%      { transform: scale(1.12); opacity: 0.75; }
+}
+
+/* 2. 조건 입력 카드: 히어로 위로 살짝 겹치게 */
+.ai-main {
+    margin-top: -3.5rem;
+}
+
+.ai-card,
+.ai-result {
+    max-width: 720px;
+}
+
+.ai-card {
+    position: relative;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 12px 32px rgba(0, 40, 90, 0.08);
+}
+
+.ai-card-title {
+    font-size: var(--fz-lg);
+    color: var(--color-text);
+}
+
+.ai-label {
+    font-size: var(--fz-xs);
+    font-weight: 600;
+    color: var(--color-secondary);
+    margin-bottom: 0.4rem;
+}
+
+.ai-input {
+    height: 46px;
+    font-size: var(--fz-sm);
+    border-color: var(--color-border);
+    border-radius: 8px;
+}
+
+.ai-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 106, 201, 0.15);
+}
+
+/* 3. AI 추천 버튼 */
+.btn-ai {
+    height: 50px;
+    color: var(--color-pure-white);
+    background: linear-gradient(90deg, var(--color-primary) 0%, #2f86e0 100%);
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0, 106, 201, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn-ai:hover,
+.btn-ai:focus-visible {
+    color: var(--color-pure-white);
+    background: linear-gradient(90deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0, 106, 201, 0.35);
+}
+
+.btn-ai:disabled {
+    color: var(--color-pure-white);
+    background: var(--color-disabled);
+    box-shadow: none;
+    transform: none;
+}
+
+/* 4. 결과 영역 */
+.ai-result {
+    padding: 1.5rem;
+    background: var(--color-pure-white);
+    border: 1px dashed var(--color-border);
+    border-radius: 1rem;
+    color: var(--color-text-muted);
+    font-size: var(--fz-sm);
+    text-align: center;
+}
+
+/* 모바일 */
+@media (max-width: 767.98px) {
+    .ai-hero { padding-bottom: 4rem; }
+    .ai-main { margin-top: -2.5rem; }
+}

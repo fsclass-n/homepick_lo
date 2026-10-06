@@ -17,4 +17,11 @@ public class HomeController{
         model.addAttribute("user", user);
         return "index"; // templates/index.html
     }
+
+    // AI 맞춤 매물 추천 (프론트엔드 화면)
+    @GetMapping("/ai/recommend")
+    public String aiRecommend(HttpSession session, Model model){
+        model.addAttribute("user", session.getAttribute("loginUser"));
+        return "sub/ai-recommend"; // templates/sub/ai-recommend.html
+    }
 }

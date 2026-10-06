@@ -9,8 +9,8 @@
 ## 변경 사항
 
 1. `application.properties`
-   - 카카오 scope를 현재 권한 상태에 맞게 설정:
-     - `spring.security.oauth2.client.registration.kakao.scope=profile_nickname`
+   - 카카오 scope 설정 제거 (KOE205: 카카오 콘솔에 설정하지 않은 동의 항목을 요청하면 로그인 불가)
+     - scope를 보내지 않으면 회원번호(`id`)만으로 로그인되고, 이름은 `userId`로 대체된다.
 
 2. `OAuth2LoginSuccessHandler`
    - 카카오 표시 이름 파싱 순서에 `kakao_account.name` 추가
@@ -32,5 +32,5 @@
 
 ## 주의
 
-- 현재 `account_email`이 카카오 콘솔에서 `권한 없음`이면 scope에 넣으면 로그인 에러가 발생한다.
-- 이메일 권한 승인이 완료되면 `account_email`을 scope에 다시 추가하면 된다.
+- 카카오 콘솔 [카카오 로그인] > [동의항목]에서 설정하지 않은 항목을 scope에 넣으면 KOE205 에러가 발생한다.
+- 닉네임/이메일이 필요하면 콘솔에서 해당 동의항목(`profile_nickname`, `account_email`)을 먼저 설정한 뒤 scope에 다시 추가한다.
