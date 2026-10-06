@@ -13,3 +13,6 @@ README.md
 build/
 out/
 bin/
+# Python 데이터 파이프라인 (배포 이미지에 불필요)
+ml-pipeline/
+

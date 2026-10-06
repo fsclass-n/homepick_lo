@@ -225,3 +225,6 @@ HELP.md
 !**/src/main/**/build/
 !**/src/test/**/build/
 **/firebase-config.js
+# ml-pipeline (Python): 중간 산출물은 커밋하지 않음, 최종 JSON만 커밋
+ml-pipeline/data/
+
