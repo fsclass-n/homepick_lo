@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const STATUS_URL = '/api/ai-data/status';
     const REFRESH_URL = '/api/ai-data/refresh';
     const TOP_N = 6;
-    const POLL_MS = 10000;
+    const POLL_MS = 5000;
     let dataPromise = null;
 
     /* =================================================================
@@ -229,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let pollTimer = null;
     let elapsedTimer = null;
     let watching = false; // 이번 화면에서 진행 과정을 지켜보는 중인지
+    let shownStep = 0;    // 지금까지 표시한 가장 먼 단계 (뒤로 돌아가지 않도록)
 
     function setPanelMode(mode){
         panel.classList.remove('d-none');
@@ -241,6 +242,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showStep(index){
+        // GitHub 단계 정보가 순간적으로 이전 단계로 보고돼도 진행 표시는 앞으로만 이동
+        index = Math.max(index, shownStep);
+        shownStep = index;
         stepItems.forEach(li => {
             const n = Number(li.dataset.step);
             li.classList.toggle('is-done', n < index);
@@ -302,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 const s = await res.json();
                 if (s.state === 'running' || s.state === 'syncing') {
-                    if (!watching) { watching = true; startElapsed(s.runStartedAt); }
+                    if (!watching) { watching = true; shownStep = 0; startElapsed(s.runStartedAt); }
                     setPanelMode('running');
                     showStep(s.state === 'syncing' ? 4 : (STEP_INDEX[s.step] ?? 0));
                 } else if (watching && s.state === 'done') {
@@ -332,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 watching = true;
+                shownStep = 0;
                 setPanelMode('running');
                 showStep(0);
                 startElapsed();

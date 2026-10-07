@@ -33,7 +33,7 @@ public class AiDataRefreshService{
     private static final String WORKFLOW_FILE = "ai-data-refresh.yml";
     private static final String DATA_PATH = "src/main/resources/static/data/apartments.json";
     private static final Duration COOLDOWN = Duration.ofMinutes(10);
-    private static final Duration STATUS_CACHE = Duration.ofSeconds(10);
+    private static final Duration STATUS_CACHE = Duration.ofSeconds(4);
     private static final Duration DATA_CACHE = Duration.ofMinutes(30);
     private static final Duration RUN_STALE = Duration.ofMinutes(40);   // 이 시간 넘게 '진행 중'이면 실패로 간주
     private static final Duration SYNC_LIMIT = Duration.ofMinutes(15);  // 학습 완료 후 이 시간 안에 반영 안 되면 실패
@@ -297,13 +297,23 @@ public class AiDataRefreshService{
         return runs == null || runs.isEmpty() ? null : runs.get(0);
     }
 
+    /**
+     * 현재 단계: 진행 중인 단계, 없으면(단계 전환 순간) 마지막 완료 단계의 다음 단계.
+     * GitHub 단계 정보가 순간적으로 어긋나도 '가장 많이 진행된 단계'를 기준으로 판단
+     */
     private String currentStep(Object runId){
         Map<String, Object> job = firstJob(runId);
         if (job == null) return "대기 중";
-        return steps(job).stream()
-                .filter(s -> "in_progress".equals(s.get("status")))
-                .map(s -> String.valueOf(s.get("name")))
-                .findFirst()
-                .orElse("준비 중");
+        List<Map<String, Object>> steps = steps(job);
+        String current = "준비 중";
+        for (int i = 0; i < steps.size(); i++) {
+            Map<String, Object> s = steps.get(i);
+            if ("in_progress".equals(s.get("status"))) {
+                current = String.valueOf(s.get("name"));
+            } else if ("completed".equals(s.get("status")) && i + 1 < steps.size()) {
+                current = String.valueOf(steps.get(i + 1).get("name"));
+            }
+        }
+        return current;
     }
 }
