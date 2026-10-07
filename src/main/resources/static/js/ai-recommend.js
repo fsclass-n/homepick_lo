@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tab.setAttribute('aria-selected', String(active));
             document.getElementById(tab.dataset.panel).classList.toggle('d-none', !active);
         });
+        document.dispatchEvent(new CustomEvent('ai:panel', { detail: panelId })); // → 그래프 크기 재조정
     }
 
     reportTabs.forEach(tab => tab.addEventListener('click', () => showReportPanel(tab.dataset.panel)));

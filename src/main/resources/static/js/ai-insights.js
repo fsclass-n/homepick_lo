@@ -1,7 +1,8 @@
 /**
  * static/js/ai-insights.js
  * AI 시장 인사이트 - ml-pipeline 이 만든 insights(지역별 요약·월별 추이·시군구 시세·가격 결정 요인·단지 유형)를 시각화
- * (Vanilla JS + SVG/Flexbox, 외부 차트 라이브러리 없음)
+ * 그래프(월별 추이·가격 결정 요인·시군구 순위)는 Python Plotly 로 만든 JSON 을 plotly.js 로 표시,
+ * 지표·유형·TOP 5 와 해석 문장은 Vanilla JS 로 구성
  *
  * 범위(scope): 수도권 전체 / 서울 / 인천 / 경기 탭으로 전환
  *
@@ -109,36 +110,43 @@
     }
 
     /* ---------------------------------------------------------------
-     * 2. 월별 거래량(막대) + 중위 거래가(선) - SVG
+     * Plotly 그래프 표시: 그래프는 ml-pipeline(04_train.py)의 Python Plotly 가 만든 JSON(data/layout)을 그대로 사용
+     * --------------------------------------------------------------- */
+    const PLOT_CONFIG = { responsive: true, displayModeBar: false };
+
+    function plot(elId, figure){
+        const el = $(elId);
+        if (!window.Plotly || !figure) {
+            el.innerHTML = '<p class="ai-sec-desc mb-0">그래프를 불러오지 못했습니다. 최신 데이터로 AI 재학습 후 다시 확인해 주세요.</p>';
+            return;
+        }
+        // 컨테이너 높이를 그래프 높이에 맞춰 고정 → 화면 폭이 바뀌어도 아래 내용과 겹치지 않음
+        el.style.height = `${figure.layout.height || 300}px`;
+        Plotly.react(el, figure.data, { ...figure.layout, autosize: true }, PLOT_CONFIG);
+        plotObserver.observe(el);
+    }
+
+    // 컨테이너 폭이 바뀔 때마다(그리드 배치 완료, 탭 전환, 창 크기 변경) 그래프를 다시 맞춤
+    const plotObserver = new ResizeObserver(entries => entries.forEach(({ target }) => {
+        if (target.data && target.clientWidth) Plotly.Plots.resize(target);
+    }));
+
+    // 숨겨진 탭에서 그려진 그래프는 폭이 0 이 되므로, 인사이트 탭이 보일 때 크기를 다시 맞춤
+    function resizePlots(){
+        if (!window.Plotly) return;
+        ['chartMonthly', 'chartImportance', 'chartSgg'].forEach(id => {
+            const el = $(id);
+            if (el && el.data) Plotly.Plots.resize(el);
+        });
+    }
+
+    /* ---------------------------------------------------------------
+     * 2. 월별 거래량(막대) + 중위 거래가(선) - Python Plotly 그래프
      * --------------------------------------------------------------- */
     function renderMonthly(){
         const months = data.insights.scopes[scope].monthly;
-        const W = 600, H = 230, P = { t: 24, r: 16, b: 30, l: 16 };
-        const innerW = W - P.l - P.r, innerH = H - P.t - P.b;
-        const slot = innerW / months.length;
-        const maxCount = Math.max(...months.map(m => m.count));
-        const prices = months.map(m => m.medianPrice);
-        const minP = Math.min(...prices) * 0.95, maxP = Math.max(...prices) * 1.03;
-        const y = p => P.t + innerH - (p - minP) / (maxP - minP) * innerH;
         const lagFrom = months.length - 2; // 최근 2개월은 신고 기한(30일) 때문에 집계 중
-
-        const bars = months.map((m, i) => {
-            const h = m.count / maxCount * innerH * 0.85;
-            const x = P.l + i * slot + slot * 0.2;
-            return `<rect class="bar ${i >= lagFrom ? 'is-lag' : ''}" x="${x}" y="${P.t + innerH - h}" width="${slot * 0.6}" height="${h}" rx="4">
-                        <title>${monthLabel(m.month)} 거래 ${m.count.toLocaleString()}건</title></rect>
-                    <text class="axis" x="${x + slot * 0.3}" y="${H - 8}" text-anchor="middle">${monthLabel(m.month)}</text>
-                    <text class="count" x="${x + slot * 0.3}" y="${P.t + innerH - 6}" text-anchor="middle">${m.count.toLocaleString()}</text>`;
-        }).join('');
-
-        const points = months.map((m, i) => [P.l + i * slot + slot / 2, y(m.medianPrice)]);
-        const line = `<polyline class="line" points="${points.map(p => p.join(',')).join(' ')}"/>` +
-            points.map(([px, py], i) => `
-                <circle class="dot" cx="${px}" cy="${py}" r="4"><title>${monthLabel(months[i].month)} 중위가 ${won(months[i].medianPrice)}</title></circle>
-                <text class="price" x="${px}" y="${py - 9}" text-anchor="middle">${won(months[i].medianPrice, true)}</text>`).join('');
-
-        $('chartMonthly').innerHTML =
-            `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${scopeLabel()} 월별 거래량과 중위 거래가">${bars}${line}</svg>`;
+        plot('chartMonthly', data.insights.charts && data.insights.charts.monthly[scope]);
 
         // 해석 문장: 추세는 신고가 끝난 달까지만 비교 (집계 중인 최근 2개월 제외)
         const settled = months.length > 3 ? months.slice(0, lagFrom) : months;
@@ -150,7 +158,7 @@
             `💡 신고가 마무리된 ${monthLabel(first.month)}~${monthLabel(last.month)} 기준 ${scopeLabel()} 아파트 중위 거래가는 ` +
             `<strong>${won(first.medianPrice, true)} → ${won(last.medianPrice, true)}</strong>으로 ${trend}했고, ` +
             `거래가 가장 활발했던 달은 <strong>${monthLabel(busiest.month)}(${busiest.count.toLocaleString()}건)</strong>입니다. ` +
-            `<span class="ai-note-sub">최근 2개월은 실거래 신고 기한(30일)으로 거래량이 적게 집계될 수 있습니다.</span>`;
+            `<span class="ai-note-sub">연한 막대(최근 2개월)는 실거래 신고 기한(30일) 때문에 아직 집계 중이라 거래량이 적게 보일 수 있습니다.</span>`;
     }
 
     /* ---------------------------------------------------------------
@@ -166,14 +174,7 @@
 
     function renderImportance(){
         const list = data.insights.importance;
-        const max = list[0].weight;
-        $('chartImportance').innerHTML = list.map((f, i) => `
-            <div>
-                <div class="d-flex justify-content-between ai-factor-label">
-                    <span>${i + 1}. ${escapeHtml(f.feature)}</span><strong>${pct(f.weight)}</strong>
-                </div>
-                <div class="ai-hbar"><span style="width:${f.weight / max * 100}%"></span></div>
-            </div>`).join('');
+        plot('chartImportance', data.insights.charts && data.insights.charts.importance);
         const [a, b] = list;
         $('noteImportance').innerHTML =
             `💡 AI는 가격을 예측할 때 <strong>${escapeHtml(a.feature)}(${pct(a.weight)})</strong>${josa(a.feature, '과', '와')} ` +
@@ -188,25 +189,19 @@
         const full = data.insights.bySgg.filter(s => scope === ALL || s.sido === scope);
         const mine = searchedSgg();
         const isMine = s => mine && s.sido === mine.sido && s.sgg === mine.sgg;
-        let list = full.map((s, i) => ({ ...s, rank: i + 1 }));
-        if (scope === ALL && list.length > ALL_SGG_LIMIT) {
-            const extra = list.find(s => isMine(s) && s.rank > ALL_SGG_LIMIT); // 내 지역은 순위 밖이어도 표시
-            list = list.slice(0, ALL_SGG_LIMIT).concat(extra ? [extra] : []);
-        }
-        const max = full[0].medianPricePerPyeong;
         $('sggScopeLabel').textContent = scope === ALL && full.length > ALL_SGG_LIMIT
             ? `· 수도권 상위 ${ALL_SGG_LIMIT}곳 (전체 ${full.length}곳)` : `· ${scopeLabel()} ${full.length}곳`;
 
-        const grid = $('chartSgg');
-        grid.style.setProperty('--sgg-rows', Math.ceil(list.length / 2));
-        grid.innerHTML = list.map(s => `
-            <div class="ai-sgg-row ${isMine(s) ? 'is-mine' : ''}" title="${escapeHtml(`${s.sido} ${s.sgg}`)} · 거래 ${s.count.toLocaleString()}건 · 중위가 ${won(s.medianPrice)}">
-                <span class="ai-sgg-rank">${s.rank}</span>
-                <span class="ai-sgg-name">${scope === ALL ? `<small>${escapeHtml(s.sido)}</small> ` : ''}${escapeHtml(s.sgg)}</span>
-                <span class="ai-hbar flex-fill"><span style="width:${s.medianPricePerPyeong / max * 100}%"></span></span>
-                <span class="ai-sgg-value">${won(s.medianPricePerPyeong)}</span>
-                <span class="ai-sgg-badge" title="AI 적정 거래가보다 5% 이상 낮게 거래된 단지 비율">저평가 ${pct(s.valueRatio)}</span>
-            </div>`).join('');
+        // Python Plotly 그래프를 복사해 검색한 내 지역 막대만 주황색으로 강조
+        const source = data.insights.charts && data.insights.charts.sgg[scope];
+        let figure = source;
+        if (source && mine) {
+            figure = JSON.parse(JSON.stringify(source));
+            const trace = figure.data[0];
+            trace.marker = { ...trace.marker,
+                color: trace.customdata.map(c => (c[0] === mine.sido && c[1] === mine.sgg ? '#FF600D' : '#006AC9')) };
+        }
+        plot('chartSgg', figure);
 
         const top = full[0], bottom = full[full.length - 1];
         const valueTop = [...full].sort((a, b) => b.valueRatio - a.valueRatio).slice(0, 3);
@@ -335,6 +330,7 @@
     });
 
     document.addEventListener('ai:data', e => { data = e.detail; renderAll(); });
+    document.addEventListener('ai:panel', e => { if (e.detail === 'panelInsights') requestAnimationFrame(resizePlots); });
     document.addEventListener('ai:search', e => {
         condition = e.detail;
         if (!data || !data.insights || !data.insights.scopes) return;

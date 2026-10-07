@@ -188,12 +188,7 @@
                                         <span class="ai-sec-no">02</span>
                                         <h3 class="ai-sec-title">월별 거래량 · 중위 거래가</h3>
                                     </header>
-                                    <div id="chartMonthly" class="ai-chart-monthly"></div>
-                                    <div class="ai-chart-legend d-flex flex-wrap gap-3 mt-2">
-                                        <span><i class="legend-bar"></i>거래량</span>
-                                        <span><i class="legend-line"></i>중위 거래가</span>
-                                        <span><i class="legend-bar is-lag"></i>신고 집계 중</span>
-                                    </div>
+                                    <div id="chartMonthly" class="ai-plot" aria-label="월별 거래량과 중위 거래가 그래프"></div>
                                     <p id="noteMonthly" class="ai-note mb-0"></p>
                                 </section>
 
@@ -202,7 +197,7 @@
                                         <span class="ai-sec-no">03</span>
                                         <h3 class="ai-sec-title">AI가 본 가격 결정 요인</h3>
                                     </header>
-                                    <div id="chartImportance" class="d-flex flex-column gap-3"></div>
+                                    <div id="chartImportance" class="ai-plot" aria-label="가격 결정 요인 그래프"></div>
                                     <p id="noteImportance" class="ai-note mb-0"></p>
                                 </section>
                             </div>
@@ -212,9 +207,10 @@
                                 <header class="ai-sec-head">
                                     <span class="ai-sec-no">04</span>
                                     <h3 class="ai-sec-title">시·군·구별 평당 거래가 순위</h3>
+                                    <span class="ai-sec-sub">막대에 마우스를 올리면 거래 건수·저평가 거래 비율을 볼 수 있습니다</span>
                                     <span id="sggScopeLabel" class="ai-sec-sub"></span>
                                 </header>
-                                <div id="chartSgg" class="ai-sgg-grid"></div>
+                                <div id="chartSgg" class="ai-plot" aria-label="시·군·구별 평당 거래가 순위 그래프"></div>
                                 <p id="noteSgg" class="ai-note mb-0"></p>
                             </section>
 
@@ -260,6 +256,8 @@
     <script th:src="@{/js/header.js}"></script>
     <script th:src="@{/js/footer.js}"></script>
     <script th:src="@{/js/cursor.js}"></script>
+    <!-- Plotly.js (ml-pipeline 의 Python Plotly 7.1 이 만든 그래프 JSON 을 표시, plotly.js 4.1.1 기본 번들) -->
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-basic-dist-min@4.1.1/plotly-basic.min.js"></script>
     <!-- AI 추천 페이지 Script -->
     <script th:src="@{/js/ai-insights.js}" src="../../static/js/ai-insights.js"></script>
     <script th:src="@{/js/ai-recommend.js}" src="../../static/js/ai-recommend.js"></script>

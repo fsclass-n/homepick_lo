@@ -1514,3 +1514,23 @@
         padding: 0.75rem 0.5rem;
     }
 }
+
+/* Plotly 그래프 영역 (Python Plotly 로 만든 그래프를 plotly.js 로 표시) */
+.ai-plot {
+    width: 100%;
+    min-height: 120px;
+}
+
+.ai-plot .modebar {
+    display: none !important;
+}
+
+/* 그리드 칸이 그래프 폭만큼 늘어나지 않도록 */
+.ai-sec-split > .ai-sec,
+.ai-sec {
+    min-width: 0;
+}
+
+.ai-plot {
+    overflow: hidden;
+}

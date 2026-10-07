@@ -4,12 +4,15 @@
 - KMeans: 비슷한 단지끼리 군집화(cluster) → 추천 시 비슷한 대안 단지 묶음에 활용
 - StandardScaler 기준값을 JSON 에 함께 저장 → 브라우저에서 같은 기준으로 유사도 계산
 - insights: 월별 추이, 구별 시세, 가격 결정 요인(feature importance), 단지 유형(군집) 요약 → 화면 시각화
+- insights.charts: Plotly(Python)로 만든 그래프 JSON → 화면에서 plotly.js 로 그대로 표시
 """
 import json
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
+import plotly.io as pio
 from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
@@ -119,6 +122,118 @@ def build_insights(df, table, model) -> dict:
     return {"scopes": scopes, "bySgg": sgg_list, "importance": importance, "clusters": clusters}
 
 
+# ---------------------------------------------------------------------------
+# Plotly 그래프 (Python 에서 만들고 JSON 으로 저장 → 화면에서 plotly.js 로 표시)
+# ---------------------------------------------------------------------------
+PRIMARY, PRIMARY_LIGHT, ACCENT, TEXT, MUTED, GRID = "#006AC9", "#9cc5ec", "#FF600D", "#333333", "#888888", "#E0E4E8"
+FONT = "NanumSquare, 'Noto Sans KR', sans-serif"
+SGG_TOP_ALL = 20  # 수도권 전체 보기의 시·군·구 순위 개수
+
+
+def base_layout(**kwargs) -> dict:
+    layout = dict(
+        font=dict(family=FONT, size=12, color=TEXT),
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=8, r=8, t=8, b=8), hoverlabel=dict(font=dict(family=FONT)),
+        showlegend=False,
+    )
+    layout.update(kwargs)
+    return layout
+
+
+def fig_json(fig: go.Figure) -> dict:
+    return json.loads(pio.to_json(fig, validate=True, remove_uids=True))
+
+
+def monthly_figure(monthly: list) -> dict:
+    """월별 거래량(막대) + 중위 거래가(선, 보조축). 최근 2개월은 신고 집계 중이라 연하게 표시"""
+    months = [f"{int(m['month'][5:])}월" for m in monthly]
+    lag_from = len(monthly) - 2
+    fig = go.Figure()
+    fig.add_bar(
+        x=months, y=[m["count"] for m in monthly], name="거래량",
+        marker=dict(color=[PRIMARY_LIGHT if i < lag_from else "rgba(156,197,236,0.35)" for i in range(len(monthly))],
+                    line=dict(color=[PRIMARY_LIGHT if i < lag_from else PRIMARY for i in range(len(monthly))], width=1)),
+        text=[f"{m['count']:,}" for m in monthly], textposition="inside", insidetextanchor="start",
+        textfont=dict(color="#0d3b73", size=11),
+        customdata=["신고 집계 중" if i >= lag_from else "신고 완료" for i in range(len(monthly))],
+        hovertemplate="%{x} 거래 %{y:,}건 (%{customdata})<extra></extra>",
+    )
+    fig.add_scatter(
+        x=months, y=[round(m["medianPrice"] / 10000, 2) for m in monthly], name="중위 거래가", yaxis="y2",
+        mode="lines+markers+text", line=dict(color=ACCENT, width=3),
+        marker=dict(size=9, color="white", line=dict(color=ACCENT, width=2)),
+        text=[f"{m['medianPrice'] / 10000:.1f}억" for m in monthly], textposition="top center",
+        textfont=dict(color=ACCENT, size=11), hovertemplate="%{x} 중위 거래가 %{y:.2f}억<extra></extra>",
+    )
+    prices = [m["medianPrice"] / 10000 for m in monthly]
+    fig.update_layout(base_layout(
+        height=300, showlegend=True, bargap=0.35,
+        legend=dict(orientation="h", y=-0.12, x=0, font=dict(size=11, color=MUTED)),
+        xaxis=dict(showgrid=False, tickfont=dict(color=MUTED)),
+        yaxis=dict(title=dict(text="거래량(건)", font=dict(size=11, color=MUTED)), gridcolor=GRID, zeroline=False,
+                   tickfont=dict(color=MUTED), rangemode="tozero"),
+        yaxis2=dict(title=dict(text="중위 거래가", font=dict(size=11, color=MUTED)), overlaying="y", side="right",
+                    showgrid=False, tickfont=dict(color=MUTED), tickformat=".1f", ticksuffix="억", nticks=5,
+                    range=[min(prices) * 0.85, max(prices) * 1.12]),
+        margin=dict(l=8, r=8, t=12, b=8),
+    ))
+    return fig_json(fig)
+
+
+def importance_figure(importance: list) -> dict:
+    """RandomForest 가격 결정 요인 (가로 막대)"""
+    items = list(reversed(importance))
+    fig = go.Figure(go.Bar(
+        x=[f["weight"] * 100 for f in items], y=[f["feature"] for f in items], orientation="h",
+        marker=dict(color=[PRIMARY if f is importance[0] else PRIMARY_LIGHT for f in items]),
+        text=[f"{f['weight'] * 100:.0f}%" for f in items], textposition="outside", cliponaxis=False,
+        textfont=dict(size=12, color=TEXT), hovertemplate="%{y}: %{x:.1f}%<extra></extra>",
+    ))
+    fig.update_layout(base_layout(
+        height=240, bargap=0.45,
+        xaxis=dict(visible=False, range=[0, max(f["weight"] for f in importance) * 118]),
+        yaxis=dict(tickfont=dict(size=13, color=TEXT), automargin=True),
+        margin=dict(l=8, r=36, t=4, b=4),
+    ))
+    return fig_json(fig)
+
+
+def sgg_figure(rows: list, show_sido: bool) -> dict:
+    """시·군·구별 평당 거래가 순위 (가로 막대, 위에서부터 1위). 저평가 비율은 마우스 오버로 표시"""
+    rows = list(reversed(rows))
+    labels = [f"{r['rank']}. {r['sido'] + ' ' if show_sido else ''}{r['sgg']}" for r in rows]
+    fig = go.Figure(go.Bar(
+        x=[r["medianPricePerPyeong"] for r in rows], y=labels, orientation="h",
+        marker=dict(color=PRIMARY, opacity=0.85),
+        text=[f"{r['medianPricePerPyeong']:,}만" for r in rows], textposition="outside", cliponaxis=False,
+        textfont=dict(size=11, color=TEXT),
+        customdata=[[r["sido"], r["sgg"], r["count"], round(r["valueRatio"] * 100), r["medianPrice"]] for r in rows],
+        hovertemplate=("%{customdata[0]} %{customdata[1]}<br>평당 %{x:,}만원 · 중위가 %{customdata[4]:,}만원"
+                       "<br>거래 %{customdata[2]:,}건 · 저평가 거래 %{customdata[3]}%<extra></extra>"),
+    ))
+    fig.update_layout(base_layout(
+        height=max(260, 24 * len(rows) + 30), bargap=0.3,
+        xaxis=dict(visible=False, range=[0, max(r["medianPricePerPyeong"] for r in rows) * 1.15]),
+        yaxis=dict(tickfont=dict(size=12, color=TEXT), automargin=True),
+        margin=dict(l=8, r=48, t=4, b=4),
+    ))
+    return fig_json(fig)
+
+
+def build_charts(insights: dict) -> dict:
+    """범위(수도권/서울/인천/경기)별 Plotly 그래프 JSON"""
+    charts = {"importance": importance_figure(insights["importance"]), "monthly": {}, "sgg": {}}
+    for scope, summary in insights["scopes"].items():
+        charts["monthly"][scope] = monthly_figure(summary["monthly"])
+        rows = [r for r in insights["bySgg"] if scope == "수도권" or r["sido"] == scope]
+        rows = [{**r, "rank": i + 1} for i, r in enumerate(rows)]
+        if scope == "수도권":
+            rows = rows[:SGG_TOP_ALL]
+        charts["sgg"][scope] = sgg_figure(rows, show_sido=(scope == "수도권"))
+    return charts
+
+
 def main():
     df = pd.read_csv(PROCESSED_CSV, parse_dates=["dealDate"])
     # 시·도 + 시·군·구 를 지역 키로 사용 (다른 시·도의 같은 이름 구가 섞이지 않도록)
@@ -163,6 +278,10 @@ def main():
         "cluster": int(r.cluster),
     } for i, r in enumerate(table.itertuples(index=False))]
 
+    # 4) 시장 인사이트 요약 + Plotly 그래프
+    insights = build_insights(df, table, model)
+    insights["charts"] = build_charts(insights)
+
     now = datetime.now(KST)
     payload = {
         # generatedAtEpoch 는 맨 앞에 둔다 (Spring 이 파일 앞부분만 읽어 서버 반영 여부 확인)
@@ -178,7 +297,7 @@ def main():
             "mean": scaler.mean_.round(4).tolist(),
             "scale": scaler.scale_.round(4).tolist(),
         },
-        "insights": build_insights(df, table, model),
+        "insights": insights,
         "items": items,
     }
 
