@@ -16,9 +16,11 @@
    저장소 준비 → Python 환경 준비 → 라이브러리 설치
    → 공공데이터 크롤링 → 데이터 전처리 → 머신러닝 학습 → 학습 결과 반영(apartments.json 커밋·푸시)
    │
-[Render] main 푸시 감지 → 자동 재배포 (새 apartments.json 포함)
+[Spring] 학습 완료 감지 → GitHub main 의 apartments.json 을 직접 받아 메모리에 반영 (재배포 없음, [skip render])
    │
-[브라우저] 10초마다 GET /api/ai-data/status 로 진행 상태 확인 → 완료 시 새 데이터 다시 로드
+[브라우저] 10초마다 GET /api/ai-data/status 로 진행 상태 확인 → 완료 시 GET /api/ai-data/apartments 다시 로드
+
+※ 2026-10-07 변경: 재배포 대기 방식 → GitHub 직접 조회 방식 (docs/ai-refresh-stuck-fix.md 참고)
 ```
 
 ## 화면 변경 (`ai-recommend.html / .css / .js`)
@@ -41,9 +43,10 @@
 | API | 설명 |
 |---|---|
 | `POST /api/ai-data/refresh` | 로그인 필수(401), 10분 쿨다운·실행 중이면 409, 설정 없으면 503 |
-| `GET /api/ai-data/status` | `state`: `idle` / `running`(+`step`) / `deploying` / `done` / `failed`, 10초 캐시 |
+| `GET /api/ai-data/status` | `state`: `idle` / `running`(+`step`) / `syncing` / `done` / `failed`, 10초 캐시 |
+| `GET /api/ai-data/apartments` | 추천 데이터 JSON (GitHub main 최신본, 실패 시 jar 포함본) |
 
-- `deploying` 판단: Actions 는 성공했지만, 현재 서버에 배포된 `apartments.json` 의 `generatedAtEpoch` 가 실행 시작 시각보다 이전이면 아직 재배포 전
+- `syncing` 판단: Actions 는 성공했지만, 서버가 가진 데이터의 `generatedAtEpoch` 가 실행 시작 시각보다 이전 → GitHub 에서 다시 받음
 - GitHub API 호출은 Spring `RestClient` 사용 (추가 의존성 없음)
 
 ## ml-pipeline 변경 (`04_train.py`)
@@ -65,7 +68,6 @@
 ## 주의 사항
 
 - 한 번 실행 시 공공데이터 API 약 150회 호출 (개발계정 일 10,000회), 10분 쿨다운 적용
-- 완료까지 약 5~8분 (Actions 2~4분 + Render 재배포 3~5분)
-- Render 재배포 시 서버가 재시작되어 **세션이 초기화됨** → 완료 후 다시 로그인이 필요할 수 있음 (진행 표시는 계속 동작)
-- 쿨다운 시각은 서버 메모리에 저장되므로 재배포 후 초기화됨 (실행 중 여부는 GitHub 기준으로 다시 확인)
+- 완료까지 약 3~5분 (Actions 실행 시간, Render 재배포 없음)
+- 쿨다운 시각은 서버 메모리에 저장되므로 서버 재시작 시 초기화됨 (실행 중 여부는 GitHub 기준으로 다시 확인)
 - 검증: 실제 키·토큰이 없어 GitHub 연동은 실행하지 못함. Java 컴파일, 가짜 데이터 학습, 화면 로직(진행 단계 전환·재배포 중 연결 끊김·완료 후 재로드·AI 안내 문장)을 시뮬레이션으로 확인함

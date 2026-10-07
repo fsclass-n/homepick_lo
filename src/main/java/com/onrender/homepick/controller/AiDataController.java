@@ -3,7 +3,9 @@ package com.onrender.homepick.controller;
 import com.onrender.homepick.service.AiDataRefreshService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +50,17 @@ public class AiDataController{
             System.err.println(">> AI 데이터 상태 조회 실패: " + e.getMessage());
             return fail(HttpStatus.BAD_GATEWAY, "진행 상태를 확인할 수 없습니다.");
         }
+    }
+
+    // 추천 데이터 (GitHub main 의 최신 학습 결과, 없으면 jar 포함본)
+    @GetMapping("/apartments")
+    public ResponseEntity<byte[]> apartments(){
+        byte[] data = refreshService.data();
+        if (data == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .cacheControl(CacheControl.noCache())
+                .body(data);
     }
 
     private ResponseEntity<Map<String, Object>> fail(HttpStatus status, String message){

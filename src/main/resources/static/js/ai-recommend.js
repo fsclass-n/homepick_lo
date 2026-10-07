@@ -3,7 +3,7 @@
  * AI 맞춤 매물 추천 - ml-pipeline 이 생성한 /data/apartments.json 으로 브라우저에서 추천
  *
  * 추천 점수 = 조건 유사도(예산·면적 근접도, StandardScaler 기준) + 저평가 점수(RandomForest) + 최근 거래 가중치
- * 최신 데이터 갱신 = GitHub Actions 에서 크롤링·학습 → JSON 커밋 → Render 재배포 (진행 상태 폴링)
+ * 최신 데이터 갱신 = GitHub Actions 에서 크롤링·학습 → JSON 커밋 → 서버가 GitHub 에서 받아 반영 (진행 상태 폴링)
  */
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('aiRecommendForm');
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const result = document.getElementById('aiResult');
     const dataInfo = document.getElementById('aiDataInfo');
 
-    const DATA_URL = '/data/apartments.json';
+    const DATA_URL = '/api/ai-data/apartments'; // 서버가 GitHub 의 최신 학습 결과를 제공
     const STATUS_URL = '/api/ai-data/status';
     const REFRESH_URL = '/api/ai-data/refresh';
     const TOP_N = 6;
@@ -292,14 +292,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(STATUS_URL, { cache: 'no-store' });
             if (res.ok) {
                 const s = await res.json();
-                if (s.state === 'running' || s.state === 'deploying') {
+                if (s.state === 'running' || s.state === 'syncing') {
                     if (!watching) { watching = true; startElapsed(s.runStartedAt); }
                     setPanelMode('running');
-                    showStep(s.state === 'deploying' ? 4 : (STEP_INDEX[s.step] ?? 0));
+                    showStep(s.state === 'syncing' ? 4 : (STEP_INDEX[s.step] ?? 0));
                 } else if (watching && s.state === 'done') {
                     return onDone();
                 } else if (watching && s.state === 'failed') {
-                    return onFailed('크롤링 또는 학습 중 오류가 발생했습니다.');
+                    return onFailed(s.message || '크롤링 또는 학습 중 오류가 발생했습니다.');
                 } else {
                     return stopWatching(); // 진행 중인 작업 없음
                 }
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (refreshBtn) {
         refreshBtn.addEventListener('click', async () => {
-            if (!confirm('공공데이터를 새로 크롤링하고 AI를 다시 학습합니다.\n완료까지 약 5~8분 걸립니다. 진행할까요?')) return;
+            if (!confirm('공공데이터를 새로 크롤링하고 AI를 다시 학습합니다.\n완료까지 약 3~5분 걸립니다. 진행할까요?')) return;
 
             refreshBtn.disabled = true;
             try {
