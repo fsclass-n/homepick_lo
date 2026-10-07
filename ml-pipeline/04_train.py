@@ -16,7 +16,7 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from common import OUTPUT_JSON, PROCESSED_CSV
+from common import OUTPUT_JSON, PROCESSED_CSV, SIDO_ORDER
 
 NUM_FEATURES = ["area", "floor", "age"]
 KST = timezone(timedelta(hours=9))  # GitHub Actions(UTC)에서 실행해도 한국 시간으로 기록
@@ -58,31 +58,47 @@ def cluster_label(row, overall) -> tuple[str, str]:
     return f"{age}·{size}·{tier}", desc
 
 
-def build_insights(df, table, model) -> dict:
-    """화면의 'AI 시장 인사이트'용 요약 (월별 추이, 구별 시세, 가격 결정 요인, 단지 유형)"""
-    # 1) 월별 거래량·중위가
+def scope_summary(df, table) -> dict:
+    """한 지역 범위(수도권 전체 또는 시·도)의 요약 + 월별 거래량·중위가"""
     month = df.assign(month=df["dealDate"].dt.strftime("%Y-%m")).groupby("month")
-    monthly = [{
-        "month": m, "count": int(len(g)), "medianPrice": int(g["price"].median()),
-        "medianPricePerPyeong": int(g["pricePerPyeong"].median()),
-    } for m, g in month]
+    return {
+        "tradeCount": int(len(df)),
+        "complexCount": int(len(table)),
+        "medianPrice": int(df["price"].median()),
+        "medianPricePerPyeong": int(df["pricePerPyeong"].median()),
+        "valueRatio": round(float((table["valueScore"] >= 1.05).mean()), 3),
+        "monthly": [{
+            "month": m, "count": int(len(g)), "medianPrice": int(g["price"].median()),
+            "medianPricePerPyeong": int(g["pricePerPyeong"].median()),
+        } for m, g in month],
+    }
 
-    # 2) 구별 평당가·거래량·저평가 단지 비율
-    value_ratio = table.groupby("sgg")["valueScore"].apply(lambda s: (s >= 1.05).mean())
-    by_sgg = df.groupby("sgg").agg(count=("price", "size"),
-                                   medianPrice=("price", "median"),
-                                   medianPricePerPyeong=("pricePerPyeong", "median"))
-    by_sgg["valueRatio"] = value_ratio
-    by_sgg = by_sgg.sort_values("medianPricePerPyeong", ascending=False).reset_index()
+
+def build_insights(df, table, model) -> dict:
+    """화면의 'AI 시장 인사이트'용 요약 (지역 범위별 요약·월별 추이, 시·군·구 시세, 가격 결정 요인, 단지 유형)"""
+    # 1) 지역 범위별 요약: 수도권 전체 + 시·도
+    scopes = {"수도권": scope_summary(df, table)}
+    for sido in SIDO_ORDER:
+        if (df["sido"] == sido).any():
+            scopes[sido] = scope_summary(df[df["sido"] == sido], table[table["sido"] == sido])
+
+    # 2) 시·군·구별 평당가·거래량·저평가 단지 비율
+    value_ratio = table.groupby("region")["valueScore"].apply(lambda s: (s >= 1.05).mean())
+    by_sgg = df.groupby(["region", "sido", "sgg"]).agg(count=("price", "size"),
+                                                       medianPrice=("price", "median"),
+                                                       medianPricePerPyeong=("pricePerPyeong", "median"))
+    by_sgg = by_sgg.reset_index()
+    by_sgg["valueRatio"] = by_sgg["region"].map(value_ratio).fillna(0)
+    by_sgg = by_sgg.sort_values("medianPricePerPyeong", ascending=False)
     sgg_list = [{
-        "sgg": r.sgg, "count": int(r.count), "medianPrice": int(r.medianPrice),
+        "sido": r.sido, "sgg": r.sgg, "count": int(r.count), "medianPrice": int(r.medianPrice),
         "medianPricePerPyeong": int(r.medianPricePerPyeong), "valueRatio": round(float(r.valueRatio), 3),
     } for r in by_sgg.itertuples(index=False)]
 
     # 3) RandomForest 가격 결정 요인 (지역 One-Hot 은 합산)
     imp = model.feature_importances_
     n = len(NUM_FEATURES)
-    factors = {"전용면적": imp[0], "층": imp[1], "건물 연식": imp[2], "지역(구)": imp[n:].sum()}
+    factors = {"전용면적": imp[0], "층": imp[1], "건물 연식": imp[2], "지역(시·군·구)": imp[n:].sum()}
     total = sum(factors.values())
     importance = sorted(({"feature": k, "weight": round(float(v / total), 3)} for k, v in factors.items()),
                         key=lambda f: -f["weight"])
@@ -96,27 +112,23 @@ def build_insights(df, table, model) -> dict:
         clusters.append({
             "id": int(cid), "label": label, "desc": desc, "count": int(len(g)),
             "medianPrice": int(center.price), "medianArea": round(float(center.area), 1),
-            "medianAge": int(center.age), "topSgg": g["sgg"].value_counts().head(3).index.tolist(),
+            "medianAge": int(center.age), "topSgg": g["region"].value_counts().head(3).index.tolist(),
         })
     clusters.sort(key=lambda c: -c["medianPrice"])
 
-    summary = {
-        "complexCount": int(len(table)),
-        "medianPrice": int(df["price"].median()),
-        "medianPricePerPyeong": int(df["pricePerPyeong"].median()),
-        "valueRatio": round(float((table["valueScore"] >= 1.05).mean()), 3),
-    }
-    return {"summary": summary, "monthly": monthly, "bySgg": sgg_list,
-            "importance": importance, "clusters": clusters}
+    return {"scopes": scopes, "bySgg": sgg_list, "importance": importance, "clusters": clusters}
 
 
 def main():
     df = pd.read_csv(PROCESSED_CSV, parse_dates=["dealDate"])
+    # 시·도 + 시·군·구 를 지역 키로 사용 (다른 시·도의 같은 이름 구가 섞이지 않도록)
+    df["region"] = df["sido"] + " " + df["sgg"]
     table = build_complex_table(df)
+    table["region"] = table["sido"] + " " + table["sgg"]
 
     # 1) 적정가 예측 모델 (거래 단위로 학습)
     encoder = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
-    x_cat = encoder.fit_transform(df[["sgg"]])
+    x_cat = encoder.fit_transform(df[["region"]])
     x = np.hstack([df[NUM_FEATURES].to_numpy(), x_cat])
     y = np.log1p(df["price"].to_numpy())
 
@@ -128,7 +140,7 @@ def main():
     mae = mean_absolute_error(np.expm1(y_test), pred_test)
     print(f"[적정가 모델] R2={r2:.3f}, MAE={mae:,.0f}만원")
 
-    x_table = np.hstack([table[NUM_FEATURES].to_numpy(), encoder.transform(table[["sgg"]])])
+    x_table = np.hstack([table[NUM_FEATURES].to_numpy(), encoder.transform(table[["region"]])])
     table["predictedPrice"] = np.expm1(model.predict(x_table)).round(0)
     # 1보다 크면 예측 적정가보다 싸게 거래된 단지 (저평가)
     table["valueScore"] = (table["predictedPrice"] / table["price"]).round(3)

@@ -1,16 +1,21 @@
 /**
  * static/js/ai-insights.js
- * AI 시장 인사이트 - ml-pipeline 이 만든 insights(월별 추이·구별 시세·가격 결정 요인·단지 유형)를 시각화
+ * AI 시장 인사이트 - ml-pipeline 이 만든 insights(지역별 요약·월별 추이·시군구 시세·가격 결정 요인·단지 유형)를 시각화
  * (Vanilla JS + SVG/Flexbox, 외부 차트 라이브러리 없음)
+ *
+ * 범위(scope): 수도권 전체 / 서울 / 인천 / 경기 탭으로 전환
  *
  * 이벤트
  *  - ai:data   : 학습 데이터 로드 완료 (ai-recommend.js) → 전체 그리기
- *  - ai:search : 추천 조건 입력 (지역·예산) → 내 지역 강조, 저평가 TOP 지역 필터, 예산에 맞는 유형 표시
+ *  - ai:search : 추천 조건 입력 (지역·예산) → 해당 시·도 탭 선택, 내 지역 강조, 저평가 TOP 지역 필터, 예산에 맞는 유형 표시
  */
 (() => {
     let data = null;
     let condition = null;
+    let scope = '수도권';
+    const ALL = '수도권';
     const MAX_VALUE_SCORE = 1 / (1 - 0.4); // 적정가 대비 최대 40% 할인까지만 '저평가'로 인정
+    const ALL_SGG_LIMIT = 20;              // 수도권 전체 보기에서 시·군·구 순위는 상위 20곳만
 
     const $ = id => document.getElementById(id);
 
@@ -27,6 +32,7 @@
     }
 
     const pct = v => `${Math.round(v * 100)}%`;
+    const monthLabel = m => `${Number(m.slice(5))}월`;
 
     // 받침 유무에 따른 조사 선택: josa('전용면적', '과', '와') → '과'
     function josa(word, withBatchim, withoutBatchim){
@@ -34,23 +40,60 @@
         if (!ch) return withBatchim;
         return (ch.charCodeAt(0) - 0xAC00) % 28 ? withBatchim : withoutBatchim;
     }
-    const monthLabel = m => `${Number(m.slice(5))}월`;
 
-    // 검색 지역에 포함된 구 이름 (예: '서울 마포구' → '마포구')
+    function median(values){
+        if (!values.length) return 0;
+        const s = [...values].sort((a, b) => a - b);
+        const mid = Math.floor(s.length / 2);
+        return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+    }
+
+    const scopeLabel = () => (scope === ALL ? '수도권' : scope);
+    const regionName = s => (scope === ALL ? `${s.sido} ${s.sgg}` : s.sgg);
+    const scopeItems = () => (scope === ALL ? data.items : data.items.filter(i => i.sido === scope));
+
+    /* ---------------------------------------------------------------
+     * 검색 조건 해석: '분당구' / '경기 분당' / '인천 연수구' → 시·군·구 매칭
+     * --------------------------------------------------------------- */
+    function searchWords(){
+        return condition ? condition.region.trim().split(/\s+/).filter(Boolean) : [];
+    }
+
     function searchedSgg(){
-        if (!condition || !data) return null;
-        const hit = data.insights.bySgg.find(s => condition.region.includes(s.sgg));
-        return hit ? hit.sgg : null;
+        const words = searchWords();
+        if (!words.length || !data) return null;
+        return data.insights.bySgg.find(s => {
+            const tokens = s.sgg.split(' ');
+            const hitToken = w => tokens.some(t => t.startsWith(w));
+            return words.some(hitToken) && words.every(w => w === s.sido || hitToken(w));
+        }) || null;
+    }
+
+    function scopeFromSearch(){
+        const words = searchWords();
+        const sido = Object.keys(data.insights.scopes).find(k => k !== ALL && words.includes(k));
+        if (sido) return sido;
+        const mine = searchedSgg();
+        return mine ? mine.sido : scope;
+    }
+
+    /* ---------------------------------------------------------------
+     * 0. 범위 탭 (수도권 / 서울 / 인천 / 경기)
+     * --------------------------------------------------------------- */
+    function renderTabs(){
+        $('insightScopeTabs').innerHTML = Object.keys(data.insights.scopes).map(k => `
+            <button type="button" class="ai-scope-tab ${k === scope ? 'is-active' : ''}" data-scope="${escapeHtml(k)}"
+                aria-pressed="${k === scope}">${k === ALL ? '수도권 전체' : escapeHtml(k)}</button>`).join('');
     }
 
     /* ---------------------------------------------------------------
      * 1. 핵심 지표
      * --------------------------------------------------------------- */
     function renderKpis(){
-        const s = data.insights.summary;
+        const s = data.insights.scopes[scope];
         const kpis = [
-            { icon: 'bi-receipt', label: '분석한 실거래', value: `${data.tradeCount.toLocaleString()}건`, sub: `단지 ${s.complexCount.toLocaleString()}개` },
-            { icon: 'bi-cash-stack', label: '서울 중위 거래가', value: won(s.medianPrice), sub: `평당 ${won(s.medianPricePerPyeong)}` },
+            { icon: 'bi-receipt', label: `${scopeLabel()} 분석 실거래`, value: `${s.tradeCount.toLocaleString()}건`, sub: `단지 ${s.complexCount.toLocaleString()}개` },
+            { icon: 'bi-cash-stack', label: `${scopeLabel()} 중위 거래가`, value: won(s.medianPrice), sub: `평당 ${won(s.medianPricePerPyeong)}` },
             { icon: 'bi-tags', label: 'AI 저평가 단지 비율', value: pct(s.valueRatio), sub: '적정가보다 5% 이상 저렴' },
             { icon: 'bi-bullseye', label: 'AI 적정가 예측력', value: `R² ${data.model.r2}`, sub: `평균 오차 ±${won(data.model.mae, true)}` }
         ];
@@ -70,7 +113,7 @@
      * 2. 월별 거래량(막대) + 중위 거래가(선) - SVG
      * --------------------------------------------------------------- */
     function renderMonthly(){
-        const months = data.insights.monthly;
+        const months = data.insights.scopes[scope].monthly;
         const W = 600, H = 230, P = { t: 24, r: 16, b: 30, l: 16 };
         const innerW = W - P.l - P.r, innerH = H - P.t - P.b;
         const slot = innerW / months.length;
@@ -96,7 +139,7 @@
                 <text class="price" x="${px}" y="${py - 9}" text-anchor="middle">${won(months[i].medianPrice, true)}</text>`).join('');
 
         $('chartMonthly').innerHTML =
-            `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="월별 거래량과 중위 거래가">${bars}${line}</svg>`;
+            `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${scopeLabel()} 월별 거래량과 중위 거래가">${bars}${line}</svg>`;
 
         // 해석 문장: 추세는 신고가 끝난 달까지만 비교 (집계 중인 최근 2개월 제외)
         const settled = months.length > 3 ? months.slice(0, lagFrom) : months;
@@ -105,17 +148,18 @@
         const busiest = months.reduce((a, b) => (b.count > a.count ? b : a));
         const trend = Math.abs(change) < 0.02 ? '큰 변동 없이 유지' : change > 0 ? `${pct(change)} 상승` : `${pct(-change)} 하락`;
         $('noteMonthly').innerHTML =
-            `💡 신고가 마무리된 ${monthLabel(first.month)}~${monthLabel(last.month)} 기준 서울 아파트 중위 거래가는 ` +
+            `💡 신고가 마무리된 ${monthLabel(first.month)}~${monthLabel(last.month)} 기준 ${scopeLabel()} 아파트 중위 거래가는 ` +
             `<strong>${won(first.medianPrice, true)} → ${won(last.medianPrice, true)}</strong>으로 ${trend}했고, ` +
             `거래가 가장 활발했던 달은 <strong>${monthLabel(busiest.month)}(${busiest.count.toLocaleString()}건)</strong>입니다. ` +
             `<span class="ai-note-sub">최근 2개월은 실거래 신고 기한(30일)으로 거래량이 적게 집계될 수 있습니다.</span>`;
     }
 
     /* ---------------------------------------------------------------
-     * 3. 가격 결정 요인 (RandomForest feature importance)
+     * 3. 가격 결정 요인 (RandomForest feature importance, 수도권 전체 모델 기준)
      * --------------------------------------------------------------- */
     const FACTOR_TIP = {
         '전용면적': '같은 지역이라도 넓을수록 가격이 크게 올라갑니다.',
+        '지역(시·군·구)': '같은 면적이라도 어느 시·군·구인지에 따라 가격 차이가 큽니다.',
         '지역(구)': '같은 면적이라도 어느 구인지에 따라 가격 차이가 큽니다.',
         '건물 연식': '신축일수록, 또는 재건축 기대가 있을수록 가격에 영향을 줍니다.',
         '층': '층수는 다른 요인보다 가격 영향이 작습니다.'
@@ -134,44 +178,74 @@
         const [a, b] = list;
         $('noteImportance').innerHTML =
             `💡 AI는 가격을 예측할 때 <strong>${escapeHtml(a.feature)}(${pct(a.weight)})</strong>${josa(a.feature, '과', '와')} ` +
-            `<strong>${escapeHtml(b.feature)}(${pct(b.weight)})</strong>${josa(b.feature, '을', '를')} 가장 중요하게 봤습니다. ${FACTOR_TIP[a.feature] || ''}`;
+            `<strong>${escapeHtml(b.feature)}(${pct(b.weight)})</strong>${josa(b.feature, '을', '를')} 가장 중요하게 봤습니다. ${FACTOR_TIP[a.feature] || ''}` +
+            `<span class="ai-note-sub">수도권 전체 거래로 학습한 모델 기준입니다.</span>`;
     }
 
     /* ---------------------------------------------------------------
-     * 4. 구별 평당가 순위 (내 지역 강조)
+     * 4. 시·군·구별 평당가 순위 (내 지역 강조)
      * --------------------------------------------------------------- */
     function renderSgg(){
-        const list = data.insights.bySgg;
-        const max = list[0].medianPricePerPyeong;
+        const full = data.insights.bySgg.filter(s => scope === ALL || s.sido === scope);
         const mine = searchedSgg();
-        $('chartSgg').innerHTML = list.map((s, i) => `
-            <div class="ai-sgg-row ${s.sgg === mine ? 'is-mine' : ''}" title="거래 ${s.count.toLocaleString()}건 · 중위가 ${won(s.medianPrice)}">
-                <span class="ai-sgg-rank">${i + 1}</span>
-                <span class="ai-sgg-name">${escapeHtml(s.sgg)}</span>
+        const isMine = s => mine && s.sido === mine.sido && s.sgg === mine.sgg;
+        let list = full.map((s, i) => ({ ...s, rank: i + 1 }));
+        if (scope === ALL && list.length > ALL_SGG_LIMIT) {
+            const extra = list.find(s => isMine(s) && s.rank > ALL_SGG_LIMIT); // 내 지역은 순위 밖이어도 표시
+            list = list.slice(0, ALL_SGG_LIMIT).concat(extra ? [extra] : []);
+        }
+        const max = full[0].medianPricePerPyeong;
+        $('sggScopeLabel').textContent = scope === ALL && full.length > ALL_SGG_LIMIT
+            ? `· 수도권 상위 ${ALL_SGG_LIMIT}곳 (전체 ${full.length}곳)` : `· ${scopeLabel()} ${full.length}곳`;
+
+        const grid = $('chartSgg');
+        grid.style.setProperty('--sgg-rows', Math.ceil(list.length / 2));
+        grid.innerHTML = list.map(s => `
+            <div class="ai-sgg-row ${isMine(s) ? 'is-mine' : ''}" title="${escapeHtml(`${s.sido} ${s.sgg}`)} · 거래 ${s.count.toLocaleString()}건 · 중위가 ${won(s.medianPrice)}">
+                <span class="ai-sgg-rank">${s.rank}</span>
+                <span class="ai-sgg-name">${scope === ALL ? `<small>${escapeHtml(s.sido)}</small> ` : ''}${escapeHtml(s.sgg)}</span>
                 <span class="ai-hbar flex-fill"><span style="width:${s.medianPricePerPyeong / max * 100}%"></span></span>
                 <span class="ai-sgg-value">${won(s.medianPricePerPyeong)}</span>
                 <span class="ai-sgg-badge" title="AI 적정가보다 5% 이상 싸게 거래된 단지 비율">저평가 ${pct(s.valueRatio)}</span>
             </div>`).join('');
 
-        const top = list[0], bottom = list[list.length - 1];
-        const valueTop = [...list].sort((a, b) => b.valueRatio - a.valueRatio).slice(0, 3);
-        let note = `💡 평당가가 가장 높은 곳은 <strong>${escapeHtml(top.sgg)}(${won(top.medianPricePerPyeong)})</strong>, ` +
-            `가장 낮은 곳은 <strong>${escapeHtml(bottom.sgg)}(${won(bottom.medianPricePerPyeong)})</strong>로 약 ` +
+        const top = full[0], bottom = full[full.length - 1];
+        const valueTop = [...full].sort((a, b) => b.valueRatio - a.valueRatio).slice(0, 3);
+        let note = `💡 ${scopeLabel()}에서 평당가가 가장 높은 곳은 <strong>${escapeHtml(regionName(top))}(${won(top.medianPricePerPyeong)})</strong>, ` +
+            `가장 낮은 곳은 <strong>${escapeHtml(regionName(bottom))}(${won(bottom.medianPricePerPyeong)})</strong>로 약 ` +
             `${(top.medianPricePerPyeong / bottom.medianPricePerPyeong).toFixed(1)}배 차이가 납니다. ` +
-            `AI 기준 저평가 단지 비율이 높은 구는 <strong>${valueTop.map(s => escapeHtml(s.sgg)).join(', ')}</strong>입니다.`;
-        if (mine) {
-            const rank = list.findIndex(s => s.sgg === mine) + 1;
-            note += ` 선택하신 <strong>${escapeHtml(mine)}</strong>${josa(mine, '은', '는')} 서울 ${list.length}개 구 중 평당가 <strong>${rank}위</strong>입니다.`;
+            `AI 기준 저평가 단지 비율이 높은 곳은 <strong>${valueTop.map(s => escapeHtml(regionName(s))).join(', ')}</strong>입니다.`;
+        const mineRow = full.find(isMine);
+        if (mineRow) {
+            const rank = full.indexOf(mineRow) + 1;
+            note += ` 선택하신 <strong>${escapeHtml(mineRow.sgg)}</strong>${josa(mineRow.sgg, '은', '는')} ` +
+                `${scopeLabel()} ${full.length}개 시·군·구 중 평당가 <strong>${rank}위</strong>입니다.`;
         }
         $('noteSgg').innerHTML = note;
     }
 
     /* ---------------------------------------------------------------
-     * 5. 단지 유형 (KMeans 군집) - 내 예산으로 가능한 유형 표시
+     * 5. 단지 유형 (KMeans 군집) - 선택 범위의 단지로 다시 집계, 내 예산으로 가능한 유형 표시
      * --------------------------------------------------------------- */
     function renderClusters(){
-        const list = data.insights.clusters;
-        const total = list.reduce((s, c) => s + c.count, 0);
+        const info = Object.fromEntries(data.insights.clusters.map(c => [c.id, c]));
+        const items = scopeItems();
+        const thisYear = new Date().getFullYear();
+        const groups = {};
+        items.forEach(i => (groups[i.cluster] = groups[i.cluster] || []).push(i));
+
+        const list = Object.entries(groups).map(([id, g]) => {
+            const counts = {};
+            g.forEach(i => { const r = regionName(i); counts[r] = (counts[r] || 0) + 1; });
+            return {
+                ...info[id], count: g.length,
+                medianPrice: Math.round(median(g.map(i => i.price))),
+                medianArea: median(g.map(i => i.area)).toFixed(1),
+                medianAge: Math.round(median(g.map(i => thisYear - i.buildYear))),
+                topSgg: Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([r]) => r)
+            };
+        }).sort((a, b) => b.medianPrice - a.medianPrice);
+
         const budget = condition ? condition.budget : null;
         $('clusterCards').innerHTML = list.map(c => {
             const fits = budget !== null && c.medianPrice <= budget;
@@ -186,7 +260,7 @@
                     <p class="ai-cluster-price fw-bold mb-1">중위 ${won(c.medianPrice)}</p>
                     <ul class="ai-cluster-meta list-unstyled mb-0">
                         <li>전용 ${c.medianArea}㎡ · 연식 ${c.medianAge}년</li>
-                        <li>단지 ${c.count.toLocaleString()}개 (${pct(c.count / total)})</li>
+                        <li>단지 ${c.count.toLocaleString()}개 (${pct(c.count / items.length)})</li>
                         <li>주요 지역: ${c.topSgg.map(escapeHtml).join(', ')}</li>
                     </ul>
                 </div>
@@ -195,15 +269,15 @@
     }
 
     /* ---------------------------------------------------------------
-     * 6. AI 저평가 단지 TOP 5 (검색 지역 기준)
+     * 6. AI 저평가 단지 TOP 5 (선택 범위 + 검색 지역 기준)
      * --------------------------------------------------------------- */
     function renderValueTop(){
         const region = condition ? condition.region.trim() : '';
-        const words = region.split(/\s+/).filter(Boolean);
+        const words = searchWords();
         const inRegion = i => words.every(w => `${i.sido} ${i.sgg} ${i.umd}`.includes(w));
         // 할인율 40% 초과(valueScore > 1.67)는 지분·증여성 등 특수 거래일 가능성이 커서 제외
-        let pool = data.items.filter(i => i.dealCount >= 2 && i.valueScore > 1 && i.valueScore <= MAX_VALUE_SCORE);
-        let label = '· 서울 전체';
+        let pool = scopeItems().filter(i => i.dealCount >= 2 && i.valueScore > 1 && i.valueScore <= MAX_VALUE_SCORE);
+        let label = `· ${scope === ALL ? '수도권 전체' : scope}`;
         if (words.length && pool.some(inRegion)) {
             pool = pool.filter(inRegion);
             label = `· ${region}`;
@@ -217,7 +291,7 @@
                 <span class="ai-value-rank">${n + 1}</span>
                 <span class="ai-value-name flex-fill">
                     <strong>${escapeHtml(i.name)}</strong>
-                    <small>${escapeHtml(`${i.sgg} ${i.umd}`)} · 전용 ${i.area}㎡ · ${i.buildYear}년 · 거래 ${i.dealCount}건</small>
+                    <small>${escapeHtml(`${i.sido} ${i.sgg} ${i.umd}`)} · 전용 ${i.area}㎡ · ${i.buildYear}년 · 거래 ${i.dealCount}건</small>
                 </span>
                 <span class="ai-value-price text-end">
                     <strong>${won(i.price)}</strong>
@@ -228,23 +302,36 @@
         }).join('') : '<li class="ai-panel-desc">조건에 맞는 저평가 단지가 없습니다.</li>';
     }
 
-    function renderAll(){
-        if (!data || !data.insights) return; // 인사이트가 없는 이전 버전 데이터는 숨김
+    function renderScope(){
+        renderTabs();
         renderKpis();
         renderMonthly();
-        renderImportance();
         renderSgg();
         renderClusters();
         renderValueTop();
+    }
+
+    function renderAll(){
+        // 인사이트가 없거나 지역 범위(scopes)가 없는 이전 버전 데이터는 숨김
+        if (!data || !data.insights || !data.insights.scopes) return;
+        if (!data.insights.scopes[scope]) scope = ALL;
+        renderScope();
+        renderImportance();
         $('aiInsights').classList.remove('d-none');
     }
+
+    document.addEventListener('click', e => {
+        const tab = e.target.closest('.ai-scope-tab');
+        if (!tab || !data) return;
+        scope = tab.dataset.scope;
+        renderScope();
+    });
 
     document.addEventListener('ai:data', e => { data = e.detail; renderAll(); });
     document.addEventListener('ai:search', e => {
         condition = e.detail;
-        if (!data || !data.insights) return;
-        renderSgg();
-        renderClusters();
-        renderValueTop();
+        if (!data || !data.insights || !data.insights.scopes) return;
+        scope = scopeFromSearch();
+        renderScope();
     });
 })();

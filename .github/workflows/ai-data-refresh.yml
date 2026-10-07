@@ -14,7 +14,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45  # 수도권 83개 시·군·구 × 6개월(약 500회 호출) 크롤링
     defaults:
       run:
         working-directory: ml-pipeline

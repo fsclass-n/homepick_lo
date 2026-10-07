@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rec.list.length) {
                 result.innerHTML = renderCards(rec, data);
             } else if (rec.cheapest === null) {
-                renderMessage(`'${escapeHtml(condition.region)}' 지역의 거래 데이터가 없습니다. 예) 서울, 강남구, 서울 마포구`);
+                renderMessage(`'${escapeHtml(condition.region)}' 지역의 거래 데이터가 없습니다. 수도권(서울·인천·경기)만 지원합니다. 예) 서울 마포구, 분당구, 인천 연수구, 경기 수원시`);
             } else {
                 renderMessage(`조건에 맞는 단지가 없습니다. 이 지역의 최저 거래가는 <strong>${formatPrice(rec.cheapest)}</strong>입니다. 예산이나 방 수를 조정해 보세요.`);
             }
@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (refreshBtn) {
         refreshBtn.addEventListener('click', async () => {
-            if (!confirm('공공데이터를 새로 크롤링하고 AI를 다시 학습합니다.\n완료까지 약 3~5분 걸립니다. 진행할까요?')) return;
+            if (!confirm('공공데이터를 새로 크롤링하고 AI를 다시 학습합니다.\n완료까지 약 7~10분 걸립니다. 진행할까요?')) return;
 
             refreshBtn.disabled = true;
             try {

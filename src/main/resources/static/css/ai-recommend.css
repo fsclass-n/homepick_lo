@@ -515,8 +515,31 @@
     .ai-sgg-grid {
         grid-auto-flow: column;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: repeat(13, auto);
+        grid-template-rows: repeat(var(--sgg-rows, 13), auto);
     }
+}
+
+/* 범위 탭 (수도권 전체 / 서울 / 인천 / 경기) */
+.ai-scope-tab {
+    padding: 0.35rem 1rem;
+    font-size: var(--fz-sm);
+    font-weight: 600;
+    color: var(--color-secondary);
+    background: var(--color-pure-white);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.ai-scope-tab:hover {
+    color: var(--color-primary);
+    border-color: rgba(0, 106, 201, 0.45);
+}
+
+.ai-scope-tab.is-active {
+    color: var(--color-pure-white);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
 }
 
 .ai-sgg-row {
@@ -544,9 +567,18 @@
 }
 
 .ai-sgg-name {
-    width: 4.2rem;
+    width: 8.6rem;
+    flex-shrink: 0;
+    overflow: hidden;
     font-weight: 700;
     color: var(--color-text);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ai-sgg-name small {
+    font-weight: 500;
+    color: var(--color-text-muted);
 }
 
 .ai-sgg-value {

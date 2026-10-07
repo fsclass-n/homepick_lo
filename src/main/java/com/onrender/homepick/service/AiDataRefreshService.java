@@ -35,7 +35,7 @@ public class AiDataRefreshService{
     private static final Duration COOLDOWN = Duration.ofMinutes(10);
     private static final Duration STATUS_CACHE = Duration.ofSeconds(4);
     private static final Duration DATA_CACHE = Duration.ofMinutes(30);
-    private static final Duration RUN_STALE = Duration.ofMinutes(40);   // 이 시간 넘게 '진행 중'이면 실패로 간주
+    private static final Duration RUN_STALE = Duration.ofMinutes(60);   // 이 시간 넘게 '진행 중'이면 실패로 간주 (Actions 제한 45분)
     private static final Duration SYNC_LIMIT = Duration.ofMinutes(15);  // 학습 완료 후 이 시간 안에 반영 안 되면 실패
     private static final Pattern GENERATED_AT = Pattern.compile("\"generatedAtEpoch\":(\\d+)");
 
@@ -199,7 +199,7 @@ public class AiDataRefreshService{
                 if (isStale(run)) {
                     result.put("state", "failed");
                     result.put("message", "갱신 작업이 제한 시간을 넘겨 중단되었습니다.");
-                    logOnce(run, "stale", ">> [AI 재학습 실패] 40분 넘게 진행 중 → 중단으로 처리 (" + run.get("html_url") + ")");
+                    logOnce(run, "stale", ">> [AI 재학습 실패] 60분 넘게 진행 중 → 중단으로 처리 (" + run.get("html_url") + ")");
                 } else {
                     result.put("state", "running");
                     result.put("step", currentStep(run.get("id")));
