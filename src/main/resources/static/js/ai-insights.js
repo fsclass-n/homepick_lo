@@ -94,8 +94,8 @@
         const kpis = [
             { icon: 'bi-receipt', label: `${scopeLabel()} 분석 실거래`, value: `${s.tradeCount.toLocaleString()}건`, sub: `단지 ${s.complexCount.toLocaleString()}개` },
             { icon: 'bi-cash-stack', label: `${scopeLabel()} 중위 거래가`, value: won(s.medianPrice), sub: `평당 ${won(s.medianPricePerPyeong)}` },
-            { icon: 'bi-tags', label: 'AI 저평가 단지 비율', value: pct(s.valueRatio), sub: '적정가보다 5% 이상 저렴' },
-            { icon: 'bi-bullseye', label: 'AI 적정가 예측력', value: `R² ${data.model.r2}`, sub: `평균 오차 ±${won(data.model.mae, true)}` }
+            { icon: 'bi-tags', label: '저평가 거래 단지 비율', value: pct(s.valueRatio), sub: 'AI 적정 거래가보다 5% 이상 낮게 거래' },
+            { icon: 'bi-bullseye', label: 'AI 적정 거래가 예측력', value: `R² ${data.model.r2}`, sub: `평균 오차 ±${won(data.model.mae, true)}` }
         ];
         $('insightKpis').innerHTML = kpis.map(k => `
             <div class="col-6 col-lg-3">
@@ -106,7 +106,7 @@
                 </div>
             </div>`).join('');
         $('insightBasis').textContent =
-            `${data.generatedAt} 학습 · 거래기간 ${data.periodFrom} ~ ${data.periodTo}`;
+            `수도권 실거래 ${data.tradeCount.toLocaleString()}건 학습 · 계약일 ${data.periodFrom} ~ ${data.periodTo} · ${data.generatedAt} 기준`;
     }
 
     /* ---------------------------------------------------------------
@@ -206,7 +206,7 @@
                 <span class="ai-sgg-name">${scope === ALL ? `<small>${escapeHtml(s.sido)}</small> ` : ''}${escapeHtml(s.sgg)}</span>
                 <span class="ai-hbar flex-fill"><span style="width:${s.medianPricePerPyeong / max * 100}%"></span></span>
                 <span class="ai-sgg-value">${won(s.medianPricePerPyeong)}</span>
-                <span class="ai-sgg-badge" title="AI 적정가보다 5% 이상 싸게 거래된 단지 비율">저평가 ${pct(s.valueRatio)}</span>
+                <span class="ai-sgg-badge" title="AI 적정 거래가보다 5% 이상 낮게 거래된 단지 비율">저평가 ${pct(s.valueRatio)}</span>
             </div>`).join('');
 
         const top = full[0], bottom = full[full.length - 1];
@@ -295,11 +295,11 @@
                 </span>
                 <span class="ai-value-price text-end">
                     <strong>${won(i.price)}</strong>
-                    <small>AI 적정가 ${won(i.predictedPrice)}</small>
+                    <small>AI 적정 거래가 ${won(i.predictedPrice)}</small>
                 </span>
-                <span class="ai-value-discount">${pct(discount)} 저렴</span>
+                <span class="ai-value-discount">${pct(discount)} 낮게 거래</span>
             </li>`;
-        }).join('') : '<li class="ai-panel-desc">조건에 맞는 저평가 단지가 없습니다.</li>';
+        }).join('') : '<li class="ai-panel-desc">조건에 맞는 저평가 거래 단지가 없습니다.</li>';
     }
 
     function renderScope(){

@@ -1,6 +1,6 @@
 /**
  * static/js/ai-recommend.js
- * AI 맞춤 매물 추천 - ml-pipeline 이 생성한 /data/apartments.json 으로 브라우저에서 추천
+ * AI 실거래 단지 추천 - ml-pipeline 이 학습한 실거래(거래 완료 기록) 데이터로 브라우저에서 단지 추천
  *
  * 추천 점수 = 조건 유사도(예산·면적 근접도, StandardScaler 기준) + 저평가 점수(RandomForest) + 최근 거래 가중치
  * 최신 데이터 갱신 = GitHub Actions 에서 크롤링·학습 → JSON 커밋 → 서버가 GitHub 에서 받아 반영 (진행 상태 폴링)
@@ -61,8 +61,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setLoading(isLoading){
         btn.disabled = isLoading;
-        btnLabel.textContent = isLoading ? 'AI가 매물을 분석 중...' : 'AI 추천 받기';
+        btnLabel.textContent = isLoading ? 'AI가 실거래 단지를 분석 중...' : 'AI 단지 추천 받기';
     }
+
+    /* 리포트 탭 전환: 추천 단지 / 시장 인사이트 */
+    const reportTabs = document.querySelectorAll('.ai-report-tab');
+    const resultEmpty = document.getElementById('aiResultEmpty');
+    const tabCount = document.getElementById('tabRecommendCount');
+
+    function showReportPanel(panelId){
+        reportTabs.forEach(tab => {
+            const active = tab.dataset.panel === panelId;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', String(active));
+            document.getElementById(tab.dataset.panel).classList.toggle('d-none', !active);
+        });
+    }
+
+    reportTabs.forEach(tab => tab.addEventListener('click', () => showReportPanel(tab.dataset.panel)));
 
     // 지역 입력: '서울', '강남구', '서울 강남구', '역삼동' 모두 허용
     function matchRegion(item, keyword){
@@ -114,9 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 단지별 AI 분석 문장 (RandomForest 적정가 대비)
     function insightText(item){
         const diff = Math.round((item.predictedPrice - item.price) / item.predictedPrice * 100);
-        if (diff >= 5) return { text: `AI 분석: 예측 적정가보다 ${diff}% 낮게 거래된 저평가 단지입니다.`, isValue: true };
-        if (diff <= -5) return { text: `AI 분석: 예측 적정가보다 ${-diff}% 높게 거래된 단지입니다.`, isValue: false };
-        return { text: 'AI 분석: 예측 적정가 수준으로 거래된 단지입니다.', isValue: false };
+        if (diff >= 5) return { text: `AI 분석: AI 적정 거래가보다 ${diff}% 낮은 가격에 거래된 저평가 단지입니다.`, isValue: true };
+        if (diff <= -5) return { text: `AI 분석: AI 적정 거래가보다 ${-diff}% 높은 가격에 거래된 단지입니다.`, isValue: false };
+        return { text: 'AI 분석: AI 적정 거래가 수준에서 거래된 단지입니다.', isValue: false };
     }
 
     function aiNote(data){
@@ -127,7 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="bi bi-robot" aria-hidden="true"></i>
                     <span>이 결과는 AI가 <strong>${escapeHtml(data.generatedAt)}</strong>에 국토교통부 아파트 실거래
                     <strong>${(data.tradeCount ?? 0).toLocaleString()}건</strong>${escapeHtml(period)}을 크롤링·학습한 모델
-                    (${escapeHtml(model.name || 'RandomForest + KMeans')}${escapeHtml(accuracy)})로 분석해 추천한 것입니다.</span>
+                    (${escapeHtml(model.name || 'RandomForest + KMeans')}${escapeHtml(accuracy)})로 분석해 추천한 단지입니다.
+                    가격은 <strong>이미 거래가 완료된 실거래가</strong>이며, 현재 판매 중인 매물 호가와 다를 수 있습니다.</span>
                 </p>`;
     }
 
@@ -139,25 +156,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 <article class="ai-item h-100 d-flex flex-column gap-2 p-3 rounded-3 bg-white">
                     <div class="d-flex justify-content-between align-items-start gap-2">
                         <h3 class="ai-item-name fw-bold mb-0">${escapeHtml(i.name)}</h3>
-                        ${insight.isValue ? '<span class="ai-badge flex-shrink-0">AI 저평가</span>' : ''}
+                        ${insight.isValue ? '<span class="ai-badge flex-shrink-0">저평가 거래</span>' : ''}
                     </div>
                     <p class="ai-item-loc mb-0"><i class="bi bi-geo-alt"></i> ${escapeHtml(`${i.sido} ${i.sgg} ${i.umd}`)}</p>
-                    <p class="ai-item-price fw-bold mb-0">${formatPrice(i.price)}</p>
+                    <div>
+                        <span class="ai-item-price-label">실거래 중위가${i.dealCount > 1 ? ` (${i.dealCount}건)` : ''}</span>
+                        <p class="ai-item-price fw-bold mb-0">${formatPrice(i.price)}</p>
+                    </div>
                     <ul class="ai-item-meta list-unstyled d-flex flex-wrap gap-2 mb-0">
                         <li>${i.rooms >= 4 ? '4방+' : `${i.rooms}방`} (추정)</li>
                         <li>전용 ${i.area}㎡</li>
                         <li>${i.buildYear}년 준공</li>
-                        <li>최근 거래 ${i.lastDealDate}</li>
+                        <li>최근 거래일 ${i.lastDealDate}</li>
                     </ul>
                     <p class="ai-item-insight mb-0 ${insight.isValue ? 'is-value' : ''}">${insight.text}</p>
-                    <p class="ai-item-ai mb-0 mt-auto">AI 적정가 ${formatPrice(i.predictedPrice)} · 매칭 ${Math.round(i.score * 100)}점</p>
+                    <p class="ai-item-ai mb-0 mt-auto">AI 적정 거래가 ${formatPrice(i.predictedPrice)} · 조건 매칭 ${Math.round(i.score * 100)}점</p>
                 </article>
             </div>`;
         }).join('');
 
         return `
             <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-                <h2 class="ai-result-title fw-bold mb-0">AI 추천 결과 <span>${rec.total.toLocaleString()}개 중 상위 ${rec.list.length}개</span></h2>
+                <h3 class="ai-result-title fw-bold mb-0">AI 추천 단지 <span>조건에 맞는 거래 단지 ${rec.total.toLocaleString()}곳 중 상위 ${rec.list.length}곳</span></h3>
                 <small class="ai-result-source">${escapeHtml(data.source)}</small>
             </div>
             ${aiNote(data)}
@@ -181,10 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setLoading(true);
         result.classList.add('d-none');
+        let found = 0;
 
         try {
             const data = await loadData();
             const rec = recommend(data, condition);
+            found = rec.list.length;
             result.classList.remove('is-empty');
             // 인사이트를 내 조건(지역·예산) 기준으로 강조
             document.dispatchEvent(new CustomEvent('ai:search', { detail: condition }));
@@ -192,15 +214,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rec.list.length) {
                 result.innerHTML = renderCards(rec, data);
             } else if (rec.cheapest === null) {
-                renderMessage(`'${escapeHtml(condition.region)}' 지역의 거래 데이터가 없습니다. 수도권(서울·인천·경기)만 지원합니다. 예) 서울 마포구, 분당구, 인천 연수구, 경기 수원시`);
+                renderMessage(`'${escapeHtml(condition.region)}' 지역의 실거래 기록이 없습니다. 수도권(서울·인천·경기)만 지원합니다. 예) 서울 마포구, 분당구, 인천 연수구, 경기 수원시`);
             } else {
-                renderMessage(`조건에 맞는 단지가 없습니다. 이 지역의 최저 거래가는 <strong>${formatPrice(rec.cheapest)}</strong>입니다. 예산이나 방 수를 조정해 보세요.`);
+                renderMessage(`조건에 맞게 거래된 단지가 없습니다. 이 지역의 최저 실거래가는 <strong>${formatPrice(rec.cheapest)}</strong>입니다. 예산이나 방 수를 조정해 보세요.`);
             }
         } catch (err) {
             renderMessage(escapeHtml(err.message));
         } finally {
             setLoading(false);
+            resultEmpty.classList.add('d-none');
             result.classList.remove('d-none');
+            tabCount.textContent = found;
+            tabCount.classList.toggle('d-none', !found);
+            // 리포트를 '추천 단지' 탭으로 전환하고 화면을 리포트로 이동
+            showReportPanel('panelRecommend');
+            document.getElementById('aiReport').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     });
 
