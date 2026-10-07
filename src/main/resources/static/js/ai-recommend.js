@@ -148,40 +148,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 </p>`;
     }
 
+    // 추천 단지: 순위 리스트 (카드 대신 구분선으로 나뉜 행)
     function renderCards(rec, data){
-        const cards = rec.list.map(i => {
+        const rows = rec.list.map((i, n) => {
             const insight = insightText(i);
+            const score = Math.round(i.score * 100);
             return `
-            <div class="col-12 col-md-6">
-                <article class="ai-item h-100 d-flex flex-column gap-2 p-3 rounded-3 bg-white">
-                    <div class="d-flex justify-content-between align-items-start gap-2">
-                        <h3 class="ai-item-name fw-bold mb-0">${escapeHtml(i.name)}</h3>
-                        ${insight.isValue ? '<span class="ai-badge flex-shrink-0">저평가 거래</span>' : ''}
-                    </div>
-                    <p class="ai-item-loc mb-0"><i class="bi bi-geo-alt"></i> ${escapeHtml(`${i.sido} ${i.sgg} ${i.umd}`)}</p>
-                    <div>
-                        <span class="ai-item-price-label">실거래 중위가${i.dealCount > 1 ? ` (${i.dealCount}건)` : ''}</span>
-                        <p class="ai-item-price fw-bold mb-0">${formatPrice(i.price)}</p>
-                    </div>
-                    <ul class="ai-item-meta list-unstyled d-flex flex-wrap gap-2 mb-0">
-                        <li>${i.rooms >= 4 ? '4방+' : `${i.rooms}방`} (추정)</li>
-                        <li>전용 ${i.area}㎡</li>
-                        <li>${i.buildYear}년 준공</li>
-                        <li>최근 거래일 ${i.lastDealDate}</li>
-                    </ul>
-                    <p class="ai-item-insight mb-0 ${insight.isValue ? 'is-value' : ''}">${insight.text}</p>
-                    <p class="ai-item-ai mb-0 mt-auto">AI 적정 거래가 ${formatPrice(i.predictedPrice)} · 조건 매칭 ${Math.round(i.score * 100)}점</p>
-                </article>
-            </div>`;
+            <li class="ai-rank-row">
+                <span class="ai-rank-no">${String(n + 1).padStart(2, '0')}</span>
+                <div class="ai-rank-main">
+                    <p class="ai-rank-name mb-0">
+                        <strong>${escapeHtml(i.name)}</strong>
+                        ${insight.isValue ? '<span class="ai-tag is-accent">저평가 거래</span>' : ''}
+                    </p>
+                    <p class="ai-rank-meta mb-0">
+                        <i class="bi bi-geo-alt" aria-hidden="true"></i> ${escapeHtml(`${i.sido} ${i.sgg} ${i.umd}`)}
+                        <span>${i.rooms >= 4 ? '4방+' : `${i.rooms}방`}(추정)</span>
+                        <span>전용 ${i.area}㎡</span>
+                        <span>${i.buildYear}년</span>
+                        <span>최근 거래 ${i.lastDealDate}</span>
+                    </p>
+                    <p class="ai-rank-insight mb-0 ${insight.isValue ? 'is-value' : ''}">${insight.text}</p>
+                </div>
+                <div class="ai-rank-price">
+                    <span class="ai-rank-label">실거래 중위가${i.dealCount > 1 ? ` · ${i.dealCount}건` : ''}</span>
+                    <strong>${formatPrice(i.price)}</strong>
+                    <small>AI 적정 거래가 ${formatPrice(i.predictedPrice)}</small>
+                </div>
+                <div class="ai-rank-score" title="예산·면적 근접도, 저평가 정도, 최근 거래 여부를 합친 점수">
+                    <span class="ai-rank-label">조건 매칭</span>
+                    <strong>${score}<small>점</small></strong>
+                    <span class="ai-meter"><span style="width:${score}%"></span></span>
+                </div>
+            </li>`;
         }).join('');
 
         return `
-            <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+            <div class="ai-result-head d-flex justify-content-between align-items-end flex-wrap gap-2">
                 <h3 class="ai-result-title fw-bold mb-0">AI 추천 단지 <span>조건에 맞는 거래 단지 ${rec.total.toLocaleString()}곳 중 상위 ${rec.list.length}곳</span></h3>
                 <small class="ai-result-source">${escapeHtml(data.source)}</small>
             </div>
             ${aiNote(data)}
-            <div class="row g-3">${cards}</div>`;
+            <ol class="ai-rank-list list-unstyled mb-0">${rows}</ol>`;
     }
 
     function renderMessage(html){

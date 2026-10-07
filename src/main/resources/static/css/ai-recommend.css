@@ -844,3 +844,467 @@
         padding: 0.5rem 0.6rem;
     }
 }
+
+/* ==========================================
+   9. 리포트 본문: 카드 대신 '문서형(에디토리얼)' 레이아웃
+   - 흰 바탕 한 장 위에 번호 섹션 + 가는 구분선
+   - 지표는 스트립, 단지·유형은 순위 행(row)
+   ========================================== */
+.ai-report-body {
+    padding: 0.5rem 2rem 1.5rem;
+    background: var(--color-pure-white);
+}
+
+/* 분석 범위 탭: 밑줄형 */
+.ai-scope-bar {
+    padding: 1rem 0 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.ai-scope-caption {
+    font-size: var(--fz-xs);
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--color-text-muted);
+}
+
+.ai-scope-tabs {
+    gap: 1.5rem;
+}
+
+.ai-scope-tab {
+    position: relative;
+    padding: 0.35rem 0;
+    font-size: var(--fz-sm);
+    font-weight: 700;
+    color: var(--color-text-muted);
+    background: none;
+    border: 0;
+    border-radius: 0;
+}
+
+.ai-scope-tab:hover {
+    color: var(--color-primary);
+}
+
+.ai-scope-tab.is-active {
+    color: var(--color-primary);
+    background: none;
+}
+
+.ai-scope-tab.is-active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.8rem;
+    height: 3px;
+    background: var(--color-primary);
+    border-radius: 3px 3px 0 0;
+}
+
+/* 번호 섹션 */
+.ai-sec {
+    padding: 1.75rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.ai-insights > .ai-sec:last-child {
+    border-bottom: 0;
+    padding-bottom: 0.5rem;
+}
+
+.ai-sec-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    margin-bottom: 1.1rem;
+}
+
+.ai-sec-no {
+    font-family: 'Montserrat', var(--ff);
+    font-size: var(--fz-sm);
+    font-weight: 800;
+    color: var(--color-accent);
+    letter-spacing: 1px;
+}
+
+.ai-sec-title {
+    margin: 0;
+    font-size: var(--fz-lg);
+    font-weight: 800;
+    color: var(--color-text);
+    letter-spacing: -0.3px;
+}
+
+.ai-sec-sub {
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-sec-desc {
+    margin: -0.5rem 0 0.75rem;
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+/* 02 | 03 나란히 (가운데 세로 구분선) */
+.ai-sec-split {
+    display: grid;
+    grid-template-columns: 1fr;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.ai-sec-split > .ai-sec {
+    border-bottom: 0;
+}
+
+@media (min-width: 992px) {
+    .ai-sec-split {
+        grid-template-columns: 7fr 5fr;
+    }
+    .ai-sec-split > .ai-sec + .ai-sec {
+        padding-left: 2rem;
+        margin-left: 2rem;
+        border-left: 1px solid var(--color-border);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .ai-sec-split > .ai-sec + .ai-sec {
+        border-top: 1px solid var(--color-border);
+    }
+}
+
+/* 해석 문장: 박스 대신 왼쪽 강조선 */
+.ai-note {
+    margin-top: 1rem;
+    padding: 0.15rem 0 0.15rem 0.9rem;
+    background: none;
+    border-left: 3px solid var(--color-primary);
+    border-radius: 0;
+}
+
+/* 01 지표 스트립 */
+.ai-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem 0;
+}
+
+@media (min-width: 992px) {
+    .ai-stats {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.ai-stat {
+    padding: 0 1.25rem;
+    border-left: 1px solid var(--color-border);
+}
+
+.ai-stat:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+}
+
+@media (min-width: 992px) {
+    .ai-stat:nth-child(odd) {
+        padding-left: 1.25rem;
+        border-left: 1px solid var(--color-border);
+    }
+    .ai-stat:first-child {
+        padding-left: 0;
+        border-left: 0;
+    }
+}
+
+.ai-stat-label,
+.ai-stat-sub {
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-stat-label .bi {
+    color: var(--color-primary);
+}
+
+.ai-stat-value {
+    font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--color-text);
+}
+
+/* 시·군·구 순위: 박스 없이 */
+.ai-sgg-row.is-mine {
+    outline: 0;
+    background: rgba(255, 96, 13, 0.08);
+}
+
+/* 공통 태그 · 라벨 · 미터 */
+.ai-tag {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.05rem 0.5rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    vertical-align: middle;
+    border-radius: 4px;
+}
+
+.ai-tag.is-accent {
+    color: var(--color-accent);
+    background: rgba(255, 96, 13, 0.1);
+}
+
+.ai-tag.is-primary {
+    color: var(--color-primary);
+    background: rgba(0, 106, 201, 0.1);
+}
+
+.ai-rank-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.ai-meter {
+    display: block;
+    height: 4px;
+    margin-top: 0.35rem;
+    background: var(--color-border);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.ai-meter > span {
+    display: block;
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: 999px;
+}
+
+.ai-meter.is-accent > span {
+    background: var(--color-accent);
+}
+
+/* 순위 행 (추천 단지 · 저평가 TOP 공통) */
+.ai-rank-list {
+    border-top: 2px solid var(--color-text);
+}
+
+.ai-rank-row {
+    display: grid;
+    grid-template-columns: 2.75rem 1fr;
+    gap: 0.6rem 1.25rem;
+    align-items: center;
+    padding: 1.1rem 0.25rem;
+    border-bottom: 1px solid var(--color-border);
+    transition: background 0.2s ease;
+}
+
+.ai-rank-row:hover {
+    background: rgba(0, 106, 201, 0.03);
+}
+
+@media (min-width: 768px) {
+    .ai-rank-row {
+        grid-template-columns: 3rem 1fr 11rem 8rem;
+    }
+}
+
+.ai-rank-no {
+    align-self: start;
+    font-family: 'Montserrat', var(--ff);
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--color-primary);
+}
+
+.ai-rank-row:nth-child(n + 4) .ai-rank-no {
+    color: var(--color-disabled);
+}
+
+.ai-rank-name {
+    font-size: var(--fz-md);
+    color: var(--color-text);
+}
+
+.ai-rank-meta {
+    margin-top: 0.15rem;
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-rank-meta span::before {
+    content: '·';
+    margin: 0 0.35rem;
+}
+
+.ai-rank-insight {
+    margin-top: 0.35rem;
+    font-size: var(--fz-xs);
+    color: var(--color-text);
+}
+
+.ai-rank-insight.is-value {
+    color: var(--color-accent);
+    font-weight: 700;
+}
+
+.ai-rank-price,
+.ai-rank-score {
+    grid-column: 2;
+}
+
+@media (min-width: 768px) {
+    .ai-rank-price,
+    .ai-rank-score {
+        grid-column: auto;
+        text-align: right;
+    }
+}
+
+.ai-rank-price strong {
+    display: block;
+    font-size: var(--fz-lg);
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.ai-rank-price small {
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-rank-score strong {
+    display: block;
+    font-size: var(--fz-lg);
+    font-weight: 800;
+    color: var(--color-text);
+}
+
+.ai-rank-score strong.is-accent {
+    color: var(--color-accent);
+}
+
+.ai-rank-score strong small {
+    font-size: var(--fz-xs);
+    font-weight: 600;
+}
+
+/* 05 단지 유형 행 */
+.ai-type-list {
+    border-top: 2px solid var(--color-text);
+}
+
+.ai-type-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem 1.5rem;
+    align-items: center;
+    padding: 1rem 0.25rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--fz-sm);
+}
+
+@media (min-width: 768px) {
+    .ai-type-row {
+        grid-template-columns: 1.6fr 0.8fr 0.8fr 1.4fr;
+    }
+}
+
+.ai-type-row.is-fit {
+    background: linear-gradient(90deg, rgba(0, 106, 201, 0.06), transparent 70%);
+    box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.ai-type-desc,
+.ai-type-share small {
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-type-price strong {
+    font-size: var(--fz-md);
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.ai-type-spec {
+    color: var(--color-text);
+}
+
+/* 추천 결과 머리말 · AI 안내 */
+.ai-result-head {
+    padding: 1.5rem 0 0.75rem;
+}
+
+.ai-report .ai-result-note {
+    margin: 0 0 1rem;
+    padding: 0.15rem 0 0.15rem 0.9rem;
+    background: none;
+    border-left: 3px solid var(--color-primary);
+    border-radius: 0;
+}
+
+/* 빈 상태 · 결과 없음: 테두리 박스 대신 여백 중심 */
+.ai-report-empty {
+    margin: 1.5rem 0 0.5rem;
+    padding: 3rem 1rem;
+    background: none;
+    border: 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+}
+
+.ai-report .ai-result.is-empty {
+    margin: 1.5rem 0 0.5rem;
+    padding: 2.5rem 1rem;
+    background: none;
+    border: 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+}
+
+.ai-report .ai-disclaimer {
+    padding: 1rem 2rem;
+    background: #f7f9fc;
+}
+
+@media (max-width: 767.98px) {
+    .ai-report-body {
+        padding: 0.25rem 1rem 1rem;
+    }
+    .ai-report .ai-disclaimer {
+        padding: 0.9rem 1rem;
+    }
+}
+
+/* 추천 후 스크롤 시 상단 고정 헤더(70px)에 리포트 머리가 가리지 않도록 */
+.ai-report {
+    scroll-margin-top: 90px;
+}
+
+/* 모바일: 가격과 매칭 점수를 한 줄에 나란히 */
+@media (max-width: 767.98px) {
+    .ai-rank-row {
+        grid-template-columns: 2.5rem 1fr 6.5rem;
+    }
+    .ai-rank-main {
+        grid-column: 2 / 4;
+    }
+    .ai-rank-price {
+        grid-column: 2;
+    }
+    .ai-rank-score {
+        grid-column: 3;
+        text-align: right;
+    }
+}

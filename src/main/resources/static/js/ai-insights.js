@@ -97,13 +97,12 @@
             { icon: 'bi-tags', label: '저평가 거래 단지 비율', value: pct(s.valueRatio), sub: 'AI 적정 거래가보다 5% 이상 낮게 거래' },
             { icon: 'bi-bullseye', label: 'AI 적정 거래가 예측력', value: `R² ${data.model.r2}`, sub: `평균 오차 ±${won(data.model.mae, true)}` }
         ];
+        // 지표 스트립 (박스 없이 세로 구분선으로 나눔)
         $('insightKpis').innerHTML = kpis.map(k => `
-            <div class="col-6 col-lg-3">
-                <div class="ai-kpi h-100 p-3 rounded-4 bg-white">
-                    <p class="ai-kpi-label mb-1"><i class="bi ${k.icon}" aria-hidden="true"></i> ${k.label}</p>
-                    <p class="ai-kpi-value fw-bold mb-0">${k.value}</p>
-                    <p class="ai-kpi-sub mb-0">${k.sub}</p>
-                </div>
+            <div class="ai-stat">
+                <p class="ai-stat-label mb-1"><i class="bi ${k.icon}" aria-hidden="true"></i> ${k.label}</p>
+                <p class="ai-stat-value mb-0">${k.value}</p>
+                <p class="ai-stat-sub mb-0">${k.sub}</p>
             </div>`).join('');
         $('insightBasis').textContent =
             `수도권 실거래 ${data.tradeCount.toLocaleString()}건 학습 · 계약일 ${data.periodFrom} ~ ${data.periodTo} · ${data.generatedAt} 기준`;
@@ -246,25 +245,25 @@
             };
         }).sort((a, b) => b.medianPrice - a.medianPrice);
 
+        // 유형 리스트 (행): 이름·설명 | 중위가 | 면적·연식 | 비중 막대 | 주요 지역
         const budget = condition ? condition.budget : null;
+        const maxShare = Math.max(...list.map(c => c.count));
         $('clusterCards').innerHTML = list.map(c => {
             const fits = budget !== null && c.medianPrice <= budget;
             return `
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="ai-cluster h-100 p-3 rounded-3 ${fits ? 'is-fit' : ''}">
-                    <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                        <strong class="ai-cluster-label">${escapeHtml(c.label)}</strong>
-                        ${fits ? '<span class="ai-cluster-fit flex-shrink-0">내 예산 OK</span>' : ''}
-                    </div>
-                    <p class="ai-cluster-desc mb-2">${escapeHtml(c.desc || '')}</p>
-                    <p class="ai-cluster-price fw-bold mb-1">중위 ${won(c.medianPrice)}</p>
-                    <ul class="ai-cluster-meta list-unstyled mb-0">
-                        <li>전용 ${c.medianArea}㎡ · 연식 ${c.medianAge}년</li>
-                        <li>단지 ${c.count.toLocaleString()}개 (${pct(c.count / items.length)})</li>
-                        <li>주요 지역: ${c.topSgg.map(escapeHtml).join(', ')}</li>
-                    </ul>
+            <li class="ai-type-row ${fits ? 'is-fit' : ''}">
+                <div class="ai-type-main">
+                    <p class="mb-0"><strong>${escapeHtml(c.label)}</strong>${fits ? '<span class="ai-tag is-primary">내 예산 OK</span>' : ''}</p>
+                    <p class="ai-type-desc mb-0">${escapeHtml(c.desc || '')}</p>
                 </div>
-            </div>`;
+                <div class="ai-type-price"><span class="ai-rank-label">중위 거래가</span><strong>${won(c.medianPrice)}</strong></div>
+                <div class="ai-type-spec"><span class="ai-rank-label">전용 · 연식</span>${c.medianArea}㎡ · ${c.medianAge}년</div>
+                <div class="ai-type-share">
+                    <span class="ai-rank-label">단지 비중 ${pct(c.count / items.length)}</span>
+                    <span class="ai-meter"><span style="width:${c.count / maxShare * 100}%"></span></span>
+                    <small>${c.count.toLocaleString()}개 · ${c.topSgg.map(escapeHtml).join(', ')}</small>
+                </div>
+            </li>`;
         }).join('');
     }
 
@@ -287,19 +286,27 @@
         $('valueTop').innerHTML = top.length ? top.map((i, n) => {
             const discount = 1 - i.price / i.predictedPrice;
             return `
-            <li class="ai-value-item d-flex flex-wrap align-items-center gap-2 gap-md-3 py-2">
-                <span class="ai-value-rank">${n + 1}</span>
-                <span class="ai-value-name flex-fill">
-                    <strong>${escapeHtml(i.name)}</strong>
-                    <small>${escapeHtml(`${i.sido} ${i.sgg} ${i.umd}`)} · 전용 ${i.area}㎡ · ${i.buildYear}년 · 거래 ${i.dealCount}건</small>
-                </span>
-                <span class="ai-value-price text-end">
+            <li class="ai-rank-row">
+                <span class="ai-rank-no">${String(n + 1).padStart(2, '0')}</span>
+                <div class="ai-rank-main">
+                    <p class="ai-rank-name mb-0"><strong>${escapeHtml(i.name)}</strong></p>
+                    <p class="ai-rank-meta mb-0">
+                        <i class="bi bi-geo-alt" aria-hidden="true"></i> ${escapeHtml(`${i.sido} ${i.sgg} ${i.umd}`)}
+                        <span>전용 ${i.area}㎡</span><span>${i.buildYear}년</span><span>거래 ${i.dealCount}건</span>
+                    </p>
+                </div>
+                <div class="ai-rank-price">
+                    <span class="ai-rank-label">실거래 중위가</span>
                     <strong>${won(i.price)}</strong>
                     <small>AI 적정 거래가 ${won(i.predictedPrice)}</small>
-                </span>
-                <span class="ai-value-discount">${pct(discount)} 낮게 거래</span>
+                </div>
+                <div class="ai-rank-score">
+                    <span class="ai-rank-label">적정가 대비</span>
+                    <strong class="is-accent">-${pct(discount)}</strong>
+                    <span class="ai-meter is-accent"><span style="width:${Math.min(discount / 0.4, 1) * 100}%"></span></span>
+                </div>
             </li>`;
-        }).join('') : '<li class="ai-panel-desc">조건에 맞는 저평가 거래 단지가 없습니다.</li>';
+        }).join('') : '<li class="ai-sec-desc">조건에 맞는 저평가 거래 단지가 없습니다.</li>';
     }
 
     function renderScope(){

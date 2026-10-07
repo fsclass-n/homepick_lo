@@ -160,71 +160,82 @@
                         <div id="aiResult" class="ai-result d-none" aria-live="polite"></div>
                     </div>
 
-                    <!-- 3-2. 시장 인사이트 (머신러닝 분석 결과 시각화) -->
+                    <!-- 3-2. 시장 인사이트 (머신러닝 분석 결과 시각화) : 번호 섹션 + 구분선 -->
                     <div id="panelInsights" class="ai-report-panel" role="tabpanel" aria-labelledby="tabInsights">
-                    <section id="aiInsights" class="ai-insights d-none" aria-label="AI 시장 인사이트">
-                        <!-- 범위 선택: 수도권 전체 / 서울 / 인천 / 경기 -->
-                        <div id="insightScopeTabs" class="ai-scope-tabs d-flex flex-wrap gap-2 mb-3" role="group" aria-label="분석 지역 선택"></div>
+                        <section id="aiInsights" class="ai-insights d-none" aria-label="AI 시장 인사이트">
+                            <!-- 범위 선택: 수도권 전체 / 서울 / 인천 / 경기 -->
+                            <div class="ai-scope-bar d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                <span class="ai-scope-caption">분석 범위</span>
+                                <div id="insightScopeTabs" class="ai-scope-tabs d-flex flex-wrap" role="group" aria-label="분석 지역 선택"></div>
+                            </div>
 
-                        <!-- 핵심 지표 -->
-                        <div id="insightKpis" class="row g-3 mb-3"></div>
+                            <!-- 01 핵심 지표 -->
+                            <section class="ai-sec">
+                                <header class="ai-sec-head">
+                                    <span class="ai-sec-no">01</span>
+                                    <h3 class="ai-sec-title">시장 요약</h3>
+                                </header>
+                                <div id="insightKpis" class="ai-stats"></div>
+                            </section>
 
-                        <div class="row g-3">
-                            <!-- 월별 거래 추이 -->
-                            <div class="col-12 col-lg-7">
-                                <article class="ai-panel h-100 p-3 p-md-4 rounded-4 bg-white">
-                                    <h3 class="ai-panel-title fw-bold">월별 거래량 · 중위 거래가</h3>
+                            <!-- 02 월별 추이 + 03 가격 결정 요인 -->
+                            <div class="ai-sec-split">
+                                <section class="ai-sec">
+                                    <header class="ai-sec-head">
+                                        <span class="ai-sec-no">02</span>
+                                        <h3 class="ai-sec-title">월별 거래량 · 중위 거래가</h3>
+                                    </header>
                                     <div id="chartMonthly" class="ai-chart-monthly"></div>
                                     <div class="ai-chart-legend d-flex flex-wrap gap-3 mt-2">
                                         <span><i class="legend-bar"></i>거래량</span>
                                         <span><i class="legend-line"></i>중위 거래가</span>
                                         <span><i class="legend-bar is-lag"></i>신고 집계 중</span>
                                     </div>
-                                    <p id="noteMonthly" class="ai-note mb-0 mt-3"></p>
-                                </article>
+                                    <p id="noteMonthly" class="ai-note mb-0"></p>
+                                </section>
+
+                                <section class="ai-sec">
+                                    <header class="ai-sec-head">
+                                        <span class="ai-sec-no">03</span>
+                                        <h3 class="ai-sec-title">AI가 본 가격 결정 요인</h3>
+                                    </header>
+                                    <div id="chartImportance" class="d-flex flex-column gap-3"></div>
+                                    <p id="noteImportance" class="ai-note mb-0"></p>
+                                </section>
                             </div>
 
-                            <!-- 가격 결정 요인 -->
-                            <div class="col-12 col-lg-5">
-                                <article class="ai-panel h-100 p-3 p-md-4 rounded-4 bg-white">
-                                    <h3 class="ai-panel-title fw-bold">AI가 본 가격 결정 요인</h3>
-                                    <div id="chartImportance" class="d-flex flex-column gap-3 mt-3"></div>
-                                    <p id="noteImportance" class="ai-note mb-0 mt-3"></p>
-                                </article>
-                            </div>
+                            <!-- 04 시·군·구 순위 -->
+                            <section class="ai-sec">
+                                <header class="ai-sec-head">
+                                    <span class="ai-sec-no">04</span>
+                                    <h3 class="ai-sec-title">시·군·구별 평당 거래가 순위</h3>
+                                    <span id="sggScopeLabel" class="ai-sec-sub"></span>
+                                </header>
+                                <div id="chartSgg" class="ai-sgg-grid"></div>
+                                <p id="noteSgg" class="ai-note mb-0"></p>
+                            </section>
 
-                            <!-- 구별 시세 -->
-                            <div class="col-12">
-                                <article class="ai-panel p-3 p-md-4 rounded-4 bg-white">
-                                    <h3 class="ai-panel-title fw-bold">
-                                        시·군·구별 평당 거래가 순위 <span id="sggScopeLabel" class="ai-panel-sub"></span>
-                                    </h3>
-                                    <div id="chartSgg" class="ai-sgg-grid mt-3"></div>
-                                    <p id="noteSgg" class="ai-note mb-0 mt-3"></p>
-                                </article>
-                            </div>
+                            <!-- 05 단지 유형 (KMeans) -->
+                            <section class="ai-sec">
+                                <header class="ai-sec-head">
+                                    <span class="ai-sec-no">05</span>
+                                    <h3 class="ai-sec-title">AI가 분류한 단지 유형</h3>
+                                    <span class="ai-sec-sub">가격·면적·연식이 비슷한 단지끼리 AI(KMeans)가 자동으로 묶은 결과</span>
+                                </header>
+                                <ul id="clusterCards" class="ai-type-list list-unstyled mb-0"></ul>
+                            </section>
 
-                            <!-- 단지 유형 (KMeans) -->
-                            <div class="col-12">
-                                <article class="ai-panel p-3 p-md-4 rounded-4 bg-white">
-                                    <h3 class="ai-panel-title fw-bold">AI가 분류한 단지 유형</h3>
-                                    <p class="ai-panel-desc mb-3">가격·면적·연식이 비슷한 단지끼리 AI(KMeans)가 자동으로 묶은 결과입니다.</p>
-                                    <div id="clusterCards" class="row g-3"></div>
-                                </article>
-                            </div>
-
-                            <!-- 저평가 TOP -->
-                            <div class="col-12">
-                                <article class="ai-panel p-3 p-md-4 rounded-4 bg-white">
-                                    <h3 class="ai-panel-title fw-bold">
-                                        AI 저평가 거래 단지 TOP 5 <span id="valueTopRegion" class="ai-panel-sub"></span>
-                                    </h3>
-                                    <p class="ai-panel-desc mb-3">AI가 예측한 적정 거래가보다 낮은 가격에 실제로 거래된 단지입니다. (거래 2건 이상, 할인율 순 · 40% 초과는 특수 거래 가능성으로 제외)</p>
-                                    <ol id="valueTop" class="ai-value-list list-unstyled mb-0"></ol>
-                                </article>
-                            </div>
-                        </div>
-                    </section>
+                            <!-- 06 저평가 TOP -->
+                            <section class="ai-sec">
+                                <header class="ai-sec-head">
+                                    <span class="ai-sec-no">06</span>
+                                    <h3 class="ai-sec-title">AI 저평가 거래 단지 TOP 5</h3>
+                                    <span id="valueTopRegion" class="ai-sec-sub"></span>
+                                </header>
+                                <p class="ai-sec-desc">AI가 예측한 적정 거래가보다 낮은 가격에 실제로 거래된 단지입니다. (거래 2건 이상, 할인율 순 · 40% 초과는 특수 거래 가능성으로 제외)</p>
+                                <ol id="valueTop" class="ai-rank-list list-unstyled mb-0"></ol>
+                            </section>
+                        </section>
                     </div>
                 </div>
 
