@@ -280,9 +280,18 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDataInfo();
     }
 
-    function onFailed(message){
+    function onFailed(message, step){
         stopWatching();
         setPanelMode('failed');
+        // 실패한 단계를 표시 (그 이전 단계는 완료)
+        const failedIndex = STEP_INDEX[step];
+        if (failedIndex !== undefined) {
+            stepItems.forEach(li => {
+                const n = Number(li.dataset.step);
+                li.classList.toggle('is-done', n < failedIndex);
+                li.classList.toggle('is-active', n === failedIndex);
+            });
+        }
         panelTitle.textContent = message || '데이터 갱신에 실패했습니다.';
         panelNote.textContent = '기존 학습 데이터로 계속 추천합니다. 잠시 후 다시 시도해 주세요.';
     }
@@ -299,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (watching && s.state === 'done') {
                     return onDone();
                 } else if (watching && s.state === 'failed') {
-                    return onFailed(s.message || '크롤링 또는 학습 중 오류가 발생했습니다.');
+                    return onFailed(s.message || '크롤링 또는 학습 중 오류가 발생했습니다.', s.step);
                 } else {
                     return stopWatching(); // 진행 중인 작업 없음
                 }

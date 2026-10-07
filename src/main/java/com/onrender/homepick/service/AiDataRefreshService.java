@@ -9,12 +9,15 @@ import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,7 +93,90 @@ public class AiDataRefreshService{
                 .toBodilessEntity();
         lastTriggeredAt = Instant.now();
         statusCachedAt = Instant.EPOCH; // 상태 캐시 무효화
+        System.out.println(">> [AI 재학습] GitHub Actions(" + WORKFLOW_FILE + ") 실행 요청");
         return null;
+    }
+
+    /* =================================================================
+     * 실패 원인 분석: 실패한 단계 + Actions 로그의 마지막 오류 문장 → 터미널 출력, 화면에는 요약
+     * ================================================================= */
+    private static final Pattern ERROR_LINE = Pattern.compile("([\\w.]*(Error|Exception|Timeout)\\w*: .+|.*API 오류.*)");
+    private static final Pattern LOG_TIMESTAMP = Pattern.compile("^\\S+Z\\s");
+
+    private final Map<Object, Map<String, String>> failures = new LinkedHashMap<>();
+    private final Set<String> logged = new HashSet<>();
+
+    private Map<String, String> failure(Map<String, Object> run){
+        return failures.computeIfAbsent(run.get("id"), id -> {
+            String step = "알 수 없는 단계";
+            String error = null;
+            try {
+                Map<String, Object> job = firstJob(id);
+                if (job != null) {
+                    step = steps(job).stream()
+                            .filter(s -> "failure".equals(s.get("conclusion")))
+                            .map(s -> String.valueOf(s.get("name")))
+                            .findFirst().orElse(step);
+                    error = errorLine(job.get("id"));
+                }
+            } catch (RestClientException e) {
+                error = "Actions 로그를 가져오지 못함: " + e.getMessage();
+            }
+
+            System.err.println(">> [AI 재학습 실패] 단계: " + step);
+            System.err.println(">>   원인: " + (error == null ? "로그에서 오류 문장을 찾지 못함" : error));
+            System.err.println(">>   상세 로그: " + run.get("html_url"));
+
+            Map<String, String> info = new LinkedHashMap<>();
+            info.put("step", step);
+            info.put("message", step + " 단계 실패: " + summarize(error));
+            return info;
+        });
+    }
+
+    /** Actions 작업 로그에서 마지막 예외/오류 문장 추출 */
+    private String errorLine(Object jobId){
+        // 로그 API 는 다운로드 주소로 302 리다이렉트 → 주소만 받아 인증 없이 다운로드
+        URI location = actions.get().uri("/jobs/{id}/logs", jobId)
+                .retrieve().toBodilessEntity().getHeaders().getLocation();
+        if (location == null) return null;
+        String log = RestClient.create().get().uri(location).retrieve().body(String.class);
+        if (log == null) return null;
+
+        String[] lines = log.split("\\R");
+        for (int i = lines.length - 1; i >= 0; i--) {
+            String line = LOG_TIMESTAMP.matcher(lines[i]).replaceFirst("").trim();
+            if (line.startsWith("##[error]Process completed")) continue;
+            if (ERROR_LINE.matcher(line).matches()) return line.replace("##[error]", "");
+        }
+        return null;
+    }
+
+    /** 화면 표시용 짧은 원인 */
+    private String summarize(String error){
+        if (error == null) return "자세한 원인은 서버 로그를 확인해 주세요.";
+        if (error.contains("ReadTimeout") || error.contains("timed out")) return "공공데이터 API 응답 시간 초과";
+        if (error.contains("ConnectionError")) return "공공데이터 API 연결 실패";
+        if (error.contains("CrawlError")) return error.replaceFirst("^.*CrawlError: ", "");
+        if (error.contains("API 오류")) return error.replaceFirst("^.*(API 오류)", "$1");
+        return error.length() > 120 ? error.substring(0, 120) + "..." : error;
+    }
+
+    private void logOnce(Map<String, Object> run, String kind, String message){
+        if (logged.add(run.get("id") + ":" + kind)) System.err.println(message);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> firstJob(Object runId){
+        Map<String, Object> body = actions.get().uri("/runs/{id}/jobs", runId).retrieve().body(Map.class);
+        List<Map<String, Object>> jobs = body == null ? List.of() : (List<Map<String, Object>>) body.get("jobs");
+        return jobs == null || jobs.isEmpty() ? null : jobs.get(0);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> steps(Map<String, Object> job){
+        List<Map<String, Object>> steps = (List<Map<String, Object>>) job.get("steps");
+        return steps == null ? List.of() : steps;
     }
 
     /**
@@ -113,26 +199,35 @@ public class AiDataRefreshService{
                 if (isStale(run)) {
                     result.put("state", "failed");
                     result.put("message", "갱신 작업이 제한 시간을 넘겨 중단되었습니다.");
+                    logOnce(run, "stale", ">> [AI 재학습 실패] 40분 넘게 진행 중 → 중단으로 처리 (" + run.get("html_url") + ")");
                 } else {
                     result.put("state", "running");
                     result.put("step", currentStep(run.get("id")));
                 }
             } else if (!"success".equals(run.get("conclusion"))) {
+                Map<String, String> failure = failure(run);
                 result.put("state", "failed");
+                result.put("step", failure.get("step"));
+                result.put("message", failure.get("message"));
             } else {
                 // 학습 완료 → 서버 데이터가 그 이후 것인지 확인, 아니면 GitHub 에서 다시 받기
                 if (dataEpoch() < startedAt.getEpochSecond()) reloadData();
                 if (dataEpoch() >= startedAt.getEpochSecond()) {
                     result.put("state", "done");
+                    logOnce(run, "done", ">> [AI 재학습 완료] 새 학습 데이터 반영 (generatedAtEpoch=" + dataEpoch + ")");
                 } else {
                     Instant completedAt = Instant.parse(String.valueOf(run.get("updated_at")));
                     boolean tooLate = Duration.between(completedAt, Instant.now()).compareTo(SYNC_LIMIT) > 0;
                     result.put("state", tooLate ? "failed" : "syncing");
-                    if (tooLate) result.put("message", "학습 결과를 서버에 반영하지 못했습니다.");
+                    if (tooLate) {
+                        result.put("message", "학습 결과를 서버에 반영하지 못했습니다.");
+                        logOnce(run, "sync", ">> [AI 재학습 실패] 학습은 성공했지만 GitHub 에서 새 데이터를 받지 못함 ("
+                                + DATA_PATH + ")");
+                    }
                 }
             }
         }
-        result.put("dataGeneratedAt", dataEpoch);
+        result.put("dataGeneratedAt", dataEpoch());
 
         cachedStatus = result;
         statusCachedAt = Instant.now();
@@ -202,17 +297,10 @@ public class AiDataRefreshService{
         return runs == null || runs.isEmpty() ? null : runs.get(0);
     }
 
-    @SuppressWarnings("unchecked")
     private String currentStep(Object runId){
-        Map<String, Object> body = actions.get()
-                .uri("/runs/{id}/jobs", runId)
-                .retrieve()
-                .body(Map.class);
-        List<Map<String, Object>> jobs = body == null ? List.of() : (List<Map<String, Object>>) body.get("jobs");
-        if (jobs == null || jobs.isEmpty()) return "대기 중";
-        List<Map<String, Object>> steps = (List<Map<String, Object>>) jobs.get(0).get("steps");
-        if (steps == null) return "준비 중";
-        return steps.stream()
+        Map<String, Object> job = firstJob(runId);
+        if (job == null) return "대기 중";
+        return steps(job).stream()
                 .filter(s -> "in_progress".equals(s.get("status")))
                 .map(s -> String.valueOf(s.get("name")))
                 .findFirst()

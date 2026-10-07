@@ -233,6 +233,15 @@
     color: var(--color-accent);
 }
 
+.ai-refresh-panel.is-failed .ai-refresh-steps li.is-active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.ai-refresh-panel.is-failed .ai-refresh-progress .progress-bar {
+    background-color: var(--color-accent);
+}
+
 /* 6. 결과 영역 */
 .ai-result-note {
     padding: 0.75rem 1rem;
