@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadData()
             .then(d => {
                 dataInfo.textContent = `AI 학습 데이터: ${d.generatedAt} 기준 · 실거래 ${(d.tradeCount ?? 0).toLocaleString()}건`;
+                document.dispatchEvent(new CustomEvent('ai:data', { detail: d })); // → ai-insights.js 시각화
             })
             .catch(() => { dataInfo.textContent = '아직 학습된 데이터가 없습니다.'; });
     }
@@ -185,6 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await loadData();
             const rec = recommend(data, condition);
             result.classList.remove('is-empty');
+            // 인사이트를 내 조건(지역·예산) 기준으로 강조
+            document.dispatchEvent(new CustomEvent('ai:search', { detail: condition }));
 
             if (rec.list.length) {
                 result.innerHTML = renderCards(rec, data);

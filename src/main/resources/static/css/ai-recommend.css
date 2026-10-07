@@ -337,3 +337,304 @@
     .ai-hero { padding-bottom: 4rem; }
     .ai-main { margin-top: -2.5rem; }
 }
+
+/* ==========================================
+   7. AI 시장 인사이트 (머신러닝 분석 시각화)
+   ========================================== */
+.ai-insights {
+    max-width: 960px;
+}
+
+.ai-insights-title {
+    font-size: var(--fz-xl);
+    color: var(--color-text);
+}
+
+.ai-insights-title .bi {
+    color: var(--color-primary);
+}
+
+.ai-insights-basis,
+.ai-panel-desc,
+.ai-disclaimer {
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-panel,
+.ai-kpi {
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 14px rgba(0, 40, 90, 0.05);
+}
+
+.ai-panel-title {
+    font-size: var(--fz-md);
+    color: var(--color-text);
+    margin-bottom: 0.25rem;
+}
+
+.ai-panel-sub {
+    font-size: var(--fz-xs);
+    font-weight: 500;
+    color: var(--color-primary);
+}
+
+/* 핵심 지표 */
+.ai-kpi-label,
+.ai-kpi-sub {
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-kpi-label .bi {
+    color: var(--color-primary);
+}
+
+.ai-kpi-value {
+    font-size: var(--fz-xl);
+    color: var(--color-text);
+}
+
+/* 해석 문장 */
+.ai-note {
+    padding: 0.75rem 0.9rem;
+    font-size: var(--fz-xs);
+    line-height: 1.7;
+    color: var(--color-text);
+    background: rgba(0, 106, 201, 0.05);
+    border-radius: 0.5rem;
+}
+
+.ai-note strong {
+    color: var(--color-primary-dark);
+}
+
+.ai-note-sub {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--color-text-muted);
+}
+
+/* 월별 차트 (SVG) */
+.ai-chart-monthly svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.ai-chart-monthly .bar {
+    fill: rgba(0, 106, 201, 0.25);
+}
+
+.ai-chart-monthly .bar.is-lag {
+    fill: rgba(0, 106, 201, 0.1);
+    stroke: rgba(0, 106, 201, 0.35);
+    stroke-dasharray: 4 3;
+}
+
+.ai-chart-monthly .line {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 2.5;
+}
+
+.ai-chart-monthly .dot {
+    fill: var(--color-pure-white);
+    stroke: var(--color-accent);
+    stroke-width: 2;
+}
+
+.ai-chart-monthly .axis {
+    font-size: 11px;
+    fill: var(--color-text-muted);
+}
+
+.ai-chart-monthly .count {
+    font-size: 10px;
+    font-weight: 700;
+    fill: var(--color-primary-dark);
+}
+
+.ai-chart-monthly .price {
+    font-size: 11px;
+    font-weight: 700;
+    fill: var(--color-accent);
+}
+
+.ai-chart-legend {
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-chart-legend i {
+    display: inline-block;
+    width: 14px;
+    height: 10px;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+    border-radius: 2px;
+}
+
+.legend-bar { background: rgba(0, 106, 201, 0.25); }
+.legend-bar.is-lag { background: rgba(0, 106, 201, 0.1); border: 1px dashed rgba(0, 106, 201, 0.35); }
+.legend-line { height: 3px !important; background: var(--color-accent); }
+
+/* 가로 막대 (가격 결정 요인 · 구별 순위 공통) */
+.ai-hbar {
+    display: block;
+    height: 10px;
+    background: var(--color-white);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.ai-hbar > span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #2f86e0, var(--color-primary));
+    border-radius: 999px;
+}
+
+.ai-factor-label {
+    font-size: var(--fz-sm);
+    margin-bottom: 0.35rem;
+}
+
+.ai-factor-label strong {
+    color: var(--color-primary);
+}
+
+/* 구별 순위 (2열 그리드) */
+.ai-sgg-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.35rem 2rem;
+}
+
+@media (min-width: 992px) {
+    .ai-sgg-grid {
+        grid-auto-flow: column;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(13, auto);
+    }
+}
+
+.ai-sgg-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    font-size: var(--fz-xs);
+    border-radius: 0.4rem;
+}
+
+.ai-sgg-row.is-mine {
+    background: rgba(255, 96, 13, 0.08);
+    outline: 1px solid rgba(255, 96, 13, 0.4);
+}
+
+.ai-sgg-row.is-mine .ai-hbar > span {
+    background: var(--color-accent);
+}
+
+.ai-sgg-rank {
+    width: 1.4rem;
+    color: var(--color-text-muted);
+    text-align: right;
+}
+
+.ai-sgg-name {
+    width: 4.2rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.ai-sgg-value {
+    width: 5.6rem;
+    text-align: right;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.ai-sgg-badge {
+    width: 4.6rem;
+    font-size: 0.68rem;
+    color: var(--color-accent);
+    text-align: right;
+}
+
+/* 단지 유형 카드 */
+.ai-cluster {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+}
+
+.ai-cluster.is-fit {
+    background: rgba(0, 106, 201, 0.05);
+    border-color: rgba(0, 106, 201, 0.45);
+}
+
+.ai-cluster-label {
+    font-size: var(--fz-sm);
+    color: var(--color-text);
+}
+
+.ai-cluster-fit {
+    padding: 0.1rem 0.5rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-pure-white);
+    background: var(--color-primary);
+    border-radius: 999px;
+}
+
+.ai-cluster-desc,
+.ai-cluster-meta {
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-cluster-price {
+    font-size: var(--fz-md);
+    color: var(--color-primary);
+}
+
+/* 저평가 TOP */
+.ai-value-item + .ai-value-item {
+    border-top: 1px solid var(--color-border);
+}
+
+.ai-value-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: var(--fz-xs);
+    font-weight: 700;
+    color: var(--color-pure-white);
+    background: var(--color-primary);
+    border-radius: 50%;
+}
+
+.ai-value-name,
+.ai-value-price {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--fz-sm);
+}
+
+.ai-value-name small,
+.ai-value-price small {
+    font-size: var(--fz-xs);
+    color: var(--color-text-muted);
+}
+
+.ai-value-discount {
+    padding: 0.25rem 0.6rem;
+    font-size: var(--fz-xs);
+    font-weight: 700;
+    color: var(--color-accent);
+    background: rgba(255, 96, 13, 0.1);
+    border-radius: 999px;
+}

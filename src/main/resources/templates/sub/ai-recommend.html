@@ -121,6 +121,77 @@
 
             <!-- 3. 추천 결과 영역 -->
             <section id="aiResult" class="ai-result mx-auto mt-4 d-none" aria-live="polite"></section>
+
+            <!-- 4. AI 시장 인사이트 (머신러닝 분석 결과 시각화) -->
+            <section id="aiInsights" class="ai-insights mx-auto mt-5 d-none" aria-labelledby="aiInsightsTitle">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-1 mb-3">
+                    <h2 id="aiInsightsTitle" class="ai-insights-title fw-bold mb-0">
+                        <i class="bi bi-graph-up-arrow" aria-hidden="true"></i> AI 시장 인사이트
+                    </h2>
+                    <small id="insightBasis" class="ai-insights-basis"></small>
+                </div>
+
+                <!-- 핵심 지표 -->
+                <div id="insightKpis" class="row g-3 mb-3"></div>
+
+                <div class="row g-3">
+                    <!-- 월별 거래 추이 -->
+                    <div class="col-12 col-lg-7">
+                        <article class="ai-panel h-100 p-3 p-md-4 rounded-4 bg-white">
+                            <h3 class="ai-panel-title fw-bold">월별 거래량 · 중위 거래가</h3>
+                            <div id="chartMonthly" class="ai-chart-monthly"></div>
+                            <div class="ai-chart-legend d-flex flex-wrap gap-3 mt-2">
+                                <span><i class="legend-bar"></i>거래량</span>
+                                <span><i class="legend-line"></i>중위 거래가</span>
+                                <span><i class="legend-bar is-lag"></i>신고 집계 중</span>
+                            </div>
+                            <p id="noteMonthly" class="ai-note mb-0 mt-3"></p>
+                        </article>
+                    </div>
+
+                    <!-- 가격 결정 요인 -->
+                    <div class="col-12 col-lg-5">
+                        <article class="ai-panel h-100 p-3 p-md-4 rounded-4 bg-white">
+                            <h3 class="ai-panel-title fw-bold">AI가 본 가격 결정 요인</h3>
+                            <div id="chartImportance" class="d-flex flex-column gap-3 mt-3"></div>
+                            <p id="noteImportance" class="ai-note mb-0 mt-3"></p>
+                        </article>
+                    </div>
+
+                    <!-- 구별 시세 -->
+                    <div class="col-12">
+                        <article class="ai-panel p-3 p-md-4 rounded-4 bg-white">
+                            <h3 class="ai-panel-title fw-bold">구별 평당 거래가 순위</h3>
+                            <div id="chartSgg" class="ai-sgg-grid mt-3"></div>
+                            <p id="noteSgg" class="ai-note mb-0 mt-3"></p>
+                        </article>
+                    </div>
+
+                    <!-- 단지 유형 (KMeans) -->
+                    <div class="col-12">
+                        <article class="ai-panel p-3 p-md-4 rounded-4 bg-white">
+                            <h3 class="ai-panel-title fw-bold">AI가 분류한 단지 유형</h3>
+                            <p class="ai-panel-desc mb-3">가격·면적·연식이 비슷한 단지끼리 AI(KMeans)가 자동으로 묶은 결과입니다.</p>
+                            <div id="clusterCards" class="row g-3"></div>
+                        </article>
+                    </div>
+
+                    <!-- 저평가 TOP -->
+                    <div class="col-12">
+                        <article class="ai-panel p-3 p-md-4 rounded-4 bg-white">
+                            <h3 class="ai-panel-title fw-bold">
+                                AI 저평가 단지 TOP 5 <span id="valueTopRegion" class="ai-panel-sub"></span>
+                            </h3>
+                            <p class="ai-panel-desc mb-3">AI 적정가보다 낮게 거래된 단지입니다. (거래 2건 이상, 할인율 순 · 40% 초과는 특수 거래 가능성으로 제외)</p>
+                            <ol id="valueTop" class="ai-value-list list-unstyled mb-0"></ol>
+                        </article>
+                    </div>
+                </div>
+
+                <p class="ai-disclaimer mt-3 mb-0">
+                    ※ 국토교통부 실거래 신고 자료를 AI가 분석한 참고 정보이며, 실제 매물 가격·투자 판단과 다를 수 있습니다.
+                </p>
+            </section>
         </div>
     </main>
 
@@ -133,6 +204,7 @@
     <script th:src="@{/js/footer.js}"></script>
     <script th:src="@{/js/cursor.js}"></script>
     <!-- AI 추천 페이지 Script -->
+    <script th:src="@{/js/ai-insights.js}" src="../../static/js/ai-insights.js"></script>
     <script th:src="@{/js/ai-recommend.js}" src="../../static/js/ai-recommend.js"></script>
 </body>
 

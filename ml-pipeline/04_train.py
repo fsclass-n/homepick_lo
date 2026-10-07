@@ -3,6 +3,7 @@
 - RandomForestRegressor: 단지 특성으로 '적정 거래가'를 예측 → 실제가 대비 저평가 점수(valueScore)
 - KMeans: 비슷한 단지끼리 군집화(cluster) → 추천 시 비슷한 대안 단지 묶음에 활용
 - StandardScaler 기준값을 JSON 에 함께 저장 → 브라우저에서 같은 기준으로 유사도 계산
+- insights: 월별 추이, 구별 시세, 가격 결정 요인(feature importance), 단지 유형(군집) 요약 → 화면 시각화
 """
 import json
 from datetime import datetime, timedelta, timezone
@@ -36,6 +37,77 @@ def build_complex_table(df: pd.DataFrame) -> pd.DataFrame:
         dealCount=("price", "size"),
     ).reset_index()
     return table
+
+
+def cluster_label(row, overall) -> tuple[str, str]:
+    """KMeans 군집의 중심값 → 사람이 읽기 쉬운 단지 유형 이름과 한 줄 설명"""
+    age = "신축" if row.age <= 10 else "준신축" if row.age <= 20 else "구축" if row.age <= 30 else "노후"
+    size = "대형" if row.area >= 102 else "중형" if row.area >= 80 else "중소형" if row.area >= 60 else "소형"
+    tier = "고가" if row.price >= overall * 1.5 else "실속" if row.price <= overall * 0.7 else "중간가"
+
+    if age == "노후" and tier == "고가":
+        desc = "연식은 오래됐지만 가격이 높은 단지 — 재건축 기대감이 반영된 유형"
+    elif age in ("신축", "준신축") and tier == "고가":
+        desc = "새 아파트 프리미엄이 붙은 인기 단지 유형"
+    elif tier == "실속":
+        desc = "예산 부담이 적어 첫 내 집 마련·1~2인 가구에 적합한 유형"
+    elif size == "대형":
+        desc = "넓은 평형을 선호하는 다인 가구에 적합한 유형"
+    else:
+        desc = "가격·면적이 무난해 실거주 수요가 가장 많은 유형"
+    return f"{age}·{size}·{tier}", desc
+
+
+def build_insights(df, table, model) -> dict:
+    """화면의 'AI 시장 인사이트'용 요약 (월별 추이, 구별 시세, 가격 결정 요인, 단지 유형)"""
+    # 1) 월별 거래량·중위가
+    month = df.assign(month=df["dealDate"].dt.strftime("%Y-%m")).groupby("month")
+    monthly = [{
+        "month": m, "count": int(len(g)), "medianPrice": int(g["price"].median()),
+        "medianPricePerPyeong": int(g["pricePerPyeong"].median()),
+    } for m, g in month]
+
+    # 2) 구별 평당가·거래량·저평가 단지 비율
+    value_ratio = table.groupby("sgg")["valueScore"].apply(lambda s: (s >= 1.05).mean())
+    by_sgg = df.groupby("sgg").agg(count=("price", "size"),
+                                   medianPrice=("price", "median"),
+                                   medianPricePerPyeong=("pricePerPyeong", "median"))
+    by_sgg["valueRatio"] = value_ratio
+    by_sgg = by_sgg.sort_values("medianPricePerPyeong", ascending=False).reset_index()
+    sgg_list = [{
+        "sgg": r.sgg, "count": int(r.count), "medianPrice": int(r.medianPrice),
+        "medianPricePerPyeong": int(r.medianPricePerPyeong), "valueRatio": round(float(r.valueRatio), 3),
+    } for r in by_sgg.itertuples(index=False)]
+
+    # 3) RandomForest 가격 결정 요인 (지역 One-Hot 은 합산)
+    imp = model.feature_importances_
+    n = len(NUM_FEATURES)
+    factors = {"전용면적": imp[0], "층": imp[1], "건물 연식": imp[2], "지역(구)": imp[n:].sum()}
+    total = sum(factors.values())
+    importance = sorted(({"feature": k, "weight": round(float(v / total), 3)} for k, v in factors.items()),
+                        key=lambda f: -f["weight"])
+
+    # 4) KMeans 단지 유형
+    overall = table["price"].median()
+    clusters = []
+    for cid, g in table.groupby("cluster"):
+        center = g[["price", "area", "age"]].median()
+        label, desc = cluster_label(center, overall)
+        clusters.append({
+            "id": int(cid), "label": label, "desc": desc, "count": int(len(g)),
+            "medianPrice": int(center.price), "medianArea": round(float(center.area), 1),
+            "medianAge": int(center.age), "topSgg": g["sgg"].value_counts().head(3).index.tolist(),
+        })
+    clusters.sort(key=lambda c: -c["medianPrice"])
+
+    summary = {
+        "complexCount": int(len(table)),
+        "medianPrice": int(df["price"].median()),
+        "medianPricePerPyeong": int(df["pricePerPyeong"].median()),
+        "valueRatio": round(float((table["valueScore"] >= 1.05).mean()), 3),
+    }
+    return {"summary": summary, "monthly": monthly, "bySgg": sgg_list,
+            "importance": importance, "clusters": clusters}
 
 
 def main():
@@ -94,6 +166,7 @@ def main():
             "mean": scaler.mean_.round(4).tolist(),
             "scale": scaler.scale_.round(4).tolist(),
         },
+        "insights": build_insights(df, table, model),
         "items": items,
     }
 
