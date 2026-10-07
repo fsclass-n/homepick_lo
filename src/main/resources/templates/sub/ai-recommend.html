@@ -37,18 +37,17 @@
         </div>
     </section>
 
-    <!-- 2. 조건 입력 카드 -->
-    <main class="ai-main pb-5">
-        <div class="container">
-            <div class="ai-card bg-white rounded-4 p-4 p-md-5 mx-auto">
-
-                <h2 class="ai-card-title d-flex align-items-center gap-2 fw-bold mb-1">
-                    <span aria-hidden="true">🏠</span> 나의 조건 입력
-                </h2>
-                <p class="ai-card-desc mb-4">최근 6개월 동안 실제로 거래된 가격을 기준으로 비교합니다.</p>
+    <main class="ai-main">
+        <!-- 2. 조건 입력: 전체 폭 검색 바 -->
+        <section class="ai-search-band">
+            <div class="container">
+                <div class="ai-search-head d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-1">
+                    <h2 class="ai-card-title fw-bold mb-0">나의 조건 입력</h2>
+                    <p class="ai-card-desc mb-0">최근 6개월 동안 실제로 거래된 가격을 기준으로 비교합니다.</p>
+                </div>
 
                 <form id="aiRecommendForm" novalidate>
-                    <div class="d-flex flex-column flex-md-row gap-3 mb-4">
+                    <div class="ai-form-row">
                         <!-- 최대 예산 -->
                         <div class="flex-fill">
                             <label for="budget" class="form-label ai-label">최대 예산 (실거래가 기준, 만원)</label>
@@ -75,13 +74,15 @@
                                 value="서울" placeholder="서울·인천·경기 (예: 분당구)" maxlength="30" required>
                             <div class="invalid-feedback">희망 지역을 입력해 주세요.</div>
                         </div>
-                    </div>
 
-                    <button type="submit" id="btnAiRecommend"
-                        class="btn btn-ai w-100 fw-bold d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-magic" aria-hidden="true"></i>
-                        <span class="btn-label">AI 단지 추천 받기</span>
-                    </button>
+                        <div class="ai-form-submit">
+                            <button type="submit" id="btnAiRecommend"
+                                class="btn btn-ai w-100 fw-bold d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-magic" aria-hidden="true"></i>
+                                <span class="btn-label">AI 단지 추천 받기</span>
+                            </button>
+                        </div>
+                    </div>
                 </form>
 
                 <!-- 학습 데이터 정보 + 최신 데이터 갱신 -->
@@ -100,7 +101,7 @@
                 </div>
 
                 <!-- 크롤링·학습 진행 표시 -->
-                <div id="aiRefreshPanel" class="ai-refresh-panel mt-3 p-3 rounded-3 d-none" aria-live="polite">
+                <div id="aiRefreshPanel" class="ai-refresh-panel mt-3 p-3 d-none" aria-live="polite">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <span class="spinner-border spinner-border-sm ai-refresh-spinner" role="status" aria-hidden="true"></span>
                         <i class="bi bi-check-circle-fill ai-refresh-done-icon d-none" aria-hidden="true"></i>
@@ -123,12 +124,13 @@
                     </p>
                 </div>
             </div>
+        </section>
 
-            <!-- 3. AI 실거래 분석 리포트: 추천 단지 + 시장 인사이트 -->
-            <section id="aiReport" class="ai-report mx-auto mt-5" aria-labelledby="aiReportTitle">
+        <!-- 3. AI 실거래 분석 리포트: 추천 단지 + 시장 인사이트 (전체 폭 밴드) -->
+        <section id="aiReport" class="ai-report" aria-labelledby="aiReportTitle">
                 <header class="ai-report-head position-relative overflow-hidden">
                     <div class="ai-report-glow position-absolute top-0 start-0 w-100 h-100" aria-hidden="true"></div>
-                    <div class="position-relative d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+                    <div class="container position-relative d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
                         <div>
                             <p class="ai-report-eyebrow mb-1"><i class="bi bi-cpu" aria-hidden="true"></i> AI ANALYSIS REPORT</p>
                             <h2 id="aiReportTitle" class="ai-report-title fw-bold mb-1">AI 실거래 분석 리포트</h2>
@@ -149,6 +151,7 @@
                 </header>
 
                 <div class="ai-report-body">
+                  <div class="container">
                     <!-- 3-1. 추천 단지 -->
                     <div id="panelRecommend" class="ai-report-panel d-none" role="tabpanel" aria-labelledby="tabRecommend">
                         <div id="aiResultEmpty" class="ai-report-empty text-center">
@@ -237,14 +240,16 @@
                             </section>
                         </section>
                     </div>
+                  </div>
                 </div>
 
-                <p class="ai-disclaimer mb-0">
-                    <i class="bi bi-shield-check" aria-hidden="true"></i>
-                    국토교통부 실거래 신고 자료(거래 완료 기록)를 AI가 분석한 참고 정보입니다. 현재 시장에 나와 있는 매물 호가와 다를 수 있으며, 투자 판단의 근거로 사용할 수 없습니다.
-                </p>
-            </section>
-        </div>
+                <div class="ai-disclaimer">
+                    <p class="container mb-0">
+                        <i class="bi bi-shield-check" aria-hidden="true"></i>
+                        국토교통부 실거래 신고 자료(거래 완료 기록)를 AI가 분석한 참고 정보입니다. 현재 시장에 나와 있는 매물 호가와 다를 수 있으며, 투자 판단의 근거로 사용할 수 없습니다.
+                    </p>
+                </div>
+        </section>
     </main>
 
     <!-- footer -->
