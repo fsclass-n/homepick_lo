@@ -27,13 +27,14 @@ main 에 push → build 작업(빌드·테스트·Docker 검사) 성공
   → deploy 작업
      1. Secrets 확인 (없으면 경고 후 건너뜀)
      2. SSH 키 설정, EC2 22번 연결 확인 (실패 시 원인 출력)
-     3. EC2 에서 실행:
+     3. GitHub Secrets → env 파일 생성 → EC2 ~/homepick.env 업로드 (필수 값 누락 시 이름 출력 후 중단)
+     4. EC2 에서 실행:
         - ~/homepick_lo 에 저장소 clone(최초) / 해당 커밋으로 갱신
         - docker build → 기존 homepick 컨테이너 제거 → 새 컨테이너 실행
           --env-file ~/homepick.env, -p 127.0.0.1:8080:8080, --restart unless-stopped
         - 최대 120초 동안 http://127.0.0.1:8080/ 응답 확인
           실패 시 컨테이너 로그 80줄을 Actions 로그에 출력
-     4. https://EC2_HOST/ 응답 코드 확인
+     5. https://EC2_HOST/ 응답 코드 확인
 ```
 
 - PR 에서는 배포하지 않음, 동시 배포는 한 번에 하나(`concurrency: ec2-deploy`)
@@ -50,35 +51,31 @@ main 에 push → build 작업(빌드·테스트·Docker 검사) 성공
 | `EC2_USER` | Amazon Linux: `ec2-user`, Ubuntu: `ubuntu` |
 | `EC2_SSH_KEY` | EC2 키 페어 `.pem` 파일 전체 내용 (`-----BEGIN ...` 부터 `-----END ...` 까지) |
 
-### 2) EC2 준비 (SSH 접속 후 1회)
+### 2) 앱 환경변수도 GitHub Secrets 로 등록 (EC2 에서 env 파일을 직접 만들 필요 없음)
+
+배포 때마다 `Upload app env from Secrets` 단계가 Secrets 로 env 파일을 만들어
+EC2 `~/homepick.env`(권한 600)로 업로드하고, 컨테이너가 `--env-file` 로 읽음.
+
+| 구분 | Secret 이름 |
+|---|---|
+| **필수** (없으면 배포 중단, 이름 목록 출력) | `DB_HOST` `DB_PORT` `DB_DATABASE` `DB_USERNAME` `DB_PASSWORD` `GOOGLE_CLIENT_ID` `NAVER_CLIENT_ID` `KAKAO_CLIENT_ID` |
+| 선택 (없으면 경고만) | `GOOGLE_CLIENT_SECRET` `NAVER_CLIENT_SECRET` `KAKAO_CLIENT_SECRET` `FIREBASE_WEB_API_KEY` `FIREBASE_WEB_AUTH_DOMAIN` `FIREBASE_WEB_PROJECT_ID` `FIREBASE_WEB_STORAGE_BUCKET` `FIREBASE_WEB_MESSAGING_SENDER_ID` `FIREBASE_WEB_APP_ID` `GH_ACTIONS_TOKEN` |
+| 자동 | `GITHUB_REPO` = 현재 저장소(`fsclass-n/homepick_lo`) |
+
+- `DB_*` 5개는 CI 빌드용으로 이미 등록되어 있으므로 그대로 함께 사용
+- **GitHub 는 `GITHUB_` 로 시작하는 Secret 이름을 허용하지 않음** → AI 재학습용 토큰은 `GH_ACTIONS_TOKEN` 으로 등록,
+  워크플로가 앱에는 `GITHUB_ACTIONS_TOKEN` 으로 넘김
+- 값은 로그에 `***` 로 가려지고, 러너에서 만든 임시 파일은 업로드 후 삭제
+- 소셜 로그인 `CLIENT_ID` 가 비어 있으면 **앱이 시작되지 않음** (CI 테스트 실패와 같은 원인) → 필수로 검사
+- Secrets 를 수정한 뒤에는 Actions 에서 Re-run(또는 main 에 push) 해야 EC2 에 반영됨
+
+### 3) EC2 준비 (SSH 접속 후 1회)
 
 ```bash
 # Docker·git 설치 (Amazon Linux 2023 예시, Ubuntu 는 apt 사용)
 sudo dnf install -y docker git
 sudo systemctl enable --now docker
-
-# 앱 환경변수 파일 (따옴표 없이 KEY=VALUE)
-nano ~/homepick.env
-chmod 600 ~/homepick.env
 ```
-
-`~/homepick.env` 에 넣을 항목 (로컬 `.env` 와 같은 이름):
-
-```
-DB_HOST=...
-DB_PORT=4000
-DB_DATABASE=...
-DB_USERNAME=...
-DB_PASSWORD=...
-GOOGLE_CLIENT_ID=...      GOOGLE_CLIENT_SECRET=...
-NAVER_CLIENT_ID=...       NAVER_CLIENT_SECRET=...
-KAKAO_CLIENT_ID=...       KAKAO_CLIENT_SECRET=...
-FIREBASE_WEB_API_KEY=...  (FIREBASE_WEB_* 6개)
-GITHUB_ACTIONS_TOKEN=...
-GITHUB_REPO=fsclass-n/homepick_lo
-```
-
-- 소셜 로그인 `CLIENT_ID` 가 비어 있으면 **앱이 시작되지 않음** (CI 테스트 실패와 같은 원인)
 - t2.micro 등 메모리 1GB 이하면 EC2 안의 Gradle 빌드가 메모리 부족으로 실패할 수 있음 → 스왑 2GB 권장
 
 ```bash
@@ -87,7 +84,7 @@ sudo mkswap /swapfile && sudo swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ```
 
-### 3) nginx 프록시 대상 확인
+### 4) nginx 프록시 대상 확인
 
 ```nginx
 location / {
@@ -98,7 +95,7 @@ location / {
 }
 ```
 
-### 4) 그 밖의 확인
+### 5) 그 밖의 확인
 
 - TiDB Cloud 에 IP 허용 목록이 있다면 EC2 IP(`52.79.239.2`) 추가
 - 소셜 로그인 콘솔에 리다이렉트 URI 추가
