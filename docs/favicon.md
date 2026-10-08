@@ -30,6 +30,16 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" th:href="@{/apple-touch-icon.png}">
 ```
 
+## 배포 반영
+
+- Render(`homepick.onrender.com`): 자동 재배포 후 `/favicon.svg`, `/favicon.ico` 200 확인
+- EC2(`homepickkr.duckdns.org`): **배포 실패 — GitHub Actions 서버에서 SSH(22번) 연결 불가**
+  - 같은 시각 개발 PC 에서는 22번 연결 성공, 재실행(Re-run)도 동일하게 실패 → 일시 장애가 아님
+  - 첫 EC2 배포(커밋 a08b6a8)는 SSH 성공 → 이후 보안 그룹 인바운드 22번이 특정 IP(예: 내 IP)로 제한된 것으로 추정
+  - 조치: 보안 그룹 인바운드 22번 소스를 `0.0.0.0/0` 으로 (키 파일 인증만 허용되므로 비밀번호 로그인 비활성 상태 유지)
+    → Actions 에서 Re-run
+  - 워크플로 SSH 확인에 3회 재시도와 원인 안내 문구 추가
+
 ## 검증
 
 - 로컬 서버: `/favicon.ico`(image/x-icon), `/favicon.svg`(image/svg+xml), `/apple-touch-icon.png`(image/png) 모두 200

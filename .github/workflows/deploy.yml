@@ -79,10 +79,14 @@ jobs:
         mkdir -p ~/.ssh
         printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2.pem
         chmod 600 ~/.ssh/ec2.pem
-        ssh-keyscan -T 15 -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null || {
-          echo "::error::$EC2_HOST 의 SSH(22번 포트)에 연결할 수 없습니다. 보안 그룹 인바운드 22번, 도메인/IP 를 확인하세요."
-          exit 1
-        }
+        # 일시적인 연결 지연에 대비해 최대 3회 시도
+        for i in 1 2 3; do
+          ssh-keyscan -T 20 -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null && exit 0
+          echo "SSH 연결 재시도 ($i/3)..."
+          sleep 5
+        done
+        echo "::error::$EC2_HOST 의 SSH(22번 포트)에 연결할 수 없습니다. 보안 그룹 인바운드 22번이 0.0.0.0/0 으로 열려 있는지(내 IP 로 제한하면 GitHub 서버가 접속 불가), 인스턴스 상태를 확인하세요."
+        exit 1
 
     # 앱 환경변수: GitHub Secrets → env 파일 생성 → EC2 ~/homepick.env 로 업로드 (권한 600)
     # ※ GitHub 는 'GITHUB_' 로 시작하는 Secret 이름을 허용하지 않아 토큰은 GH_ACTIONS_TOKEN 으로 등록
