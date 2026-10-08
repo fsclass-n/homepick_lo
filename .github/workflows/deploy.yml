@@ -42,3 +42,90 @@ jobs:
     # 5. Render에 사용될 Dockerfile 빌드 정상 여부 사전 검증
     - name: Test Docker Build
       run: docker build -t homepick-test .
+
+  # ------------------------------------------------------------------
+  # EC2 배포 (A 방식): SSH 접속 → 최신 main 받기 → EC2 에서 Docker 빌드 → 컨테이너 교체
+  # 필요한 GitHub Secrets: EC2_HOST(도메인 또는 IP), EC2_USER(ec2-user/ubuntu), EC2_SSH_KEY(.pem 내용)
+  # EC2 준비: Docker 설치, ~/homepick.env (앱 환경변수), nginx 는 127.0.0.1:8080 으로 프록시
+  # ------------------------------------------------------------------
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ec2-deploy
+      cancel-in-progress: false
+    env:
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+      EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+
+    steps:
+    - name: Check EC2 secrets
+      id: check
+      run: |
+        if [ -z "$EC2_HOST" ] || [ -z "$EC2_USER" ] || [ -z "$EC2_SSH_KEY" ]; then
+          echo "::warning::EC2_HOST / EC2_USER / EC2_SSH_KEY Secrets 가 없어 EC2 배포를 건너뜁니다."
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Set up SSH key
+      if: steps.check.outputs.ready == 'true'
+      run: |
+        mkdir -p ~/.ssh
+        printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2.pem
+        chmod 600 ~/.ssh/ec2.pem
+        ssh-keyscan -T 15 -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null || {
+          echo "::error::$EC2_HOST 의 SSH(22번 포트)에 연결할 수 없습니다. 보안 그룹 인바운드 22번, 도메인/IP 를 확인하세요."
+          exit 1
+        }
+
+    - name: Deploy on EC2
+      if: steps.check.outputs.ready == 'true'
+      run: |
+        ssh -i ~/.ssh/ec2.pem -o ConnectTimeout=20 -o ServerAliveInterval=30 "$EC2_USER@$EC2_HOST" \
+          "REPO_URL='https://github.com/${{ github.repository }}.git' COMMIT='${{ github.sha }}' bash -s" <<'EOF'
+        set -euo pipefail
+        APP_DIR="$HOME/homepick_lo"
+        ENV_FILE="$HOME/homepick.env"
+        NAME=homepick
+
+        command -v docker >/dev/null || { echo "::error::EC2 에 Docker 가 설치되어 있지 않습니다."; exit 1; }
+        [ -f "$ENV_FILE" ] || { echo "::error::$ENV_FILE 이 없습니다. 앱 환경변수(DB_*, 소셜 로그인 키 등)를 만들어 주세요."; exit 1; }
+
+        # 1) 최신 소스 (배포 전용 사본이므로 서버에서 직접 수정한 내용은 덮어씀)
+        if [ ! -d "$APP_DIR/.git" ]; then git clone "$REPO_URL" "$APP_DIR"; fi
+        cd "$APP_DIR"
+        git fetch --quiet origin main
+        git reset --hard --quiet "$COMMIT"
+        echo ">> 배포 커밋: $(git log -1 --oneline)"
+
+        # 2) EC2 에서 이미지 빌드 → 컨테이너 교체 (nginx 가 프록시하는 127.0.0.1:8080 으로만 공개)
+        sudo docker build -t "$NAME:latest" .
+        sudo docker rm -f "$NAME" >/dev/null 2>&1 || true
+        sudo docker run -d --name "$NAME" --restart unless-stopped \
+          --env-file "$ENV_FILE" -p 127.0.0.1:8080:8080 "$NAME:latest"
+
+        # 3) 기동 확인 (최대 120초), 실패 시 원인 로그 출력
+        for i in $(seq 1 60); do
+          if curl -fs -o /dev/null http://127.0.0.1:8080/; then
+            echo ">> 배포 성공: 앱이 8080 포트에서 응답합니다."
+            sudo docker image prune -f >/dev/null
+            exit 0
+          fi
+          if [ "$(sudo docker inspect -f '{{.State.Running}}' "$NAME" 2>/dev/null)" != "true" ]; then break; fi
+          sleep 2
+        done
+        echo "::error::앱이 시작되지 않았습니다. 컨테이너 로그:"
+        sudo docker logs --tail 80 "$NAME" || true
+        exit 1
+        EOF
+
+    - name: Check public HTTPS
+      if: steps.check.outputs.ready == 'true'
+      run: |
+        code=$(curl -s -o /dev/null -w '%{http_code}' -m 20 "https://$EC2_HOST/" || true)
+        echo ">> https://$EC2_HOST/ 응답 코드: $code"
+        [ "$code" = "200" ] || echo "::warning::HTTPS 응답이 200 이 아닙니다($code). nginx 가 127.0.0.1:8080 으로 프록시하는지 확인하세요."
