@@ -79,13 +79,22 @@ jobs:
         mkdir -p ~/.ssh
         printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2.pem
         chmod 600 ~/.ssh/ec2.pem
+        # EC2 퍼블릭 IP 는 인스턴스를 중지→시작하면 바뀜 → IP 를 직접 넣었으면 경고 (도메인 권장)
+        if [[ "$EC2_HOST" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "::warning::EC2_HOST 가 IP 주소로 등록되어 있습니다. 인스턴스 재시작 시 IP 가 바뀌어 배포가 실패하므로 도메인(homepickkr.duckdns.org) 또는 탄력적 IP 사용을 권장합니다."
+          IS_IP=true
+        fi
         # 일시적인 연결 지연에 대비해 최대 3회 시도
         for i in 1 2 3; do
           ssh-keyscan -T 20 -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null && exit 0
           echo "SSH 연결 재시도 ($i/3)..."
           sleep 5
         done
-        echo "::error::$EC2_HOST 의 SSH(22번 포트)에 연결할 수 없습니다. 보안 그룹 인바운드 22번이 0.0.0.0/0 으로 열려 있는지(내 IP 로 제한하면 GitHub 서버가 접속 불가), 인스턴스 상태를 확인하세요."
+        if [ "${IS_IP:-}" = true ]; then
+          echo "::error::SSH(22번) 연결 실패. EC2_HOST 에 등록된 IP 가 현재 인스턴스 IP 와 다른지 확인하세요(재시작 시 변경됨). EC2_HOST 를 도메인으로 바꾸면 해결됩니다."
+        else
+          echo "::error::SSH(22번) 연결 실패. 도메인이 현재 EC2 IP 를 가리키는지(DuckDNS), 보안 그룹 인바운드 22번, 인스턴스 실행 상태를 확인하세요."
+        fi
         exit 1
 
     # 앱 환경변수: GitHub Secrets → env 파일 생성 → EC2 ~/homepick.env 로 업로드 (권한 600)

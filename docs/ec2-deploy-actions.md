@@ -14,7 +14,11 @@
 | "EC2 첫 배포" 커밋 | `test.txt` 1개 추가뿐 |
 | `https://homepickkr.duckdns.org/` | **502 Bad Gateway** → 도메인·SSL·nginx 는 동작, 뒤에서 응답할 앱이 없음 |
 
-## EC2_HOST 에 도메인 사용
+## EC2_HOST 에 도메인 사용 (IP 를 넣으면 재시작 후 배포 실패)
+
+- 2026-10-08 14:44 인스턴스 재시작으로 퍼블릭 IP 가 `52.79.239.2` → `13.124.134.6` 으로 바뀜
+  → IP 로 등록된 `EC2_HOST` 로는 SSH 시간 초과 (보안 그룹은 정상이었음)
+- 워크플로가 `EC2_HOST` 가 IP 형식이면 경고를 출력함
 
 - 가능: `EC2_HOST=homepickkr.duckdns.org` (ssh 가 도메인을 IP 로 변환)
 - IP 가 바뀌어도 DuckDNS 만 갱신되면 Secrets 수정 불필요
