@@ -179,6 +179,11 @@ jobs:
     - name: Check public HTTPS
       if: steps.check.outputs.ready == 'true'
       run: |
-        code=$(curl -s -o /dev/null -w '%{http_code}' -m 20 "https://$EC2_HOST/" || true)
+        # 컨테이너 기동 직후엔 nginx 연결이 잠시 실패할 수 있어 최대 5회 재시도
+        for i in 1 2 3 4 5; do
+          code=$(curl -s -o /dev/null -w '%{http_code}' -m 20 "https://$EC2_HOST/" || true)
+          [ "$code" = "200" ] && break
+          sleep 6
+        done
         echo ">> https://$EC2_HOST/ 응답 코드: $code"
         [ "$code" = "200" ] || echo "::warning::HTTPS 응답이 200 이 아닙니다($code). nginx 가 127.0.0.1:8080 으로 프록시하는지 확인하세요."

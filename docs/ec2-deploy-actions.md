@@ -103,6 +103,16 @@ location / {
 - `server.forward-headers-strategy=native` 로 nginx 의 `X-Forwarded-Proto` 를 신뢰
   → `{baseUrl}` 이 `https://homepickkr.duckdns.org` 로 만들어져 위 URI 와 일치
 
+## 첫 자동 배포 결과 (커밋 a08b6a8)
+
+- Secrets → env 12개 항목 업로드 → EC2 Docker 빌드 → **"배포 성공: 앱이 8080 포트에서 응답"**
+- `https://homepickkr.duckdns.org/` 200, `/ai/recommend` 200 (이전 502 해결)
+- 구글 로그인 리다이렉트: `redirect_uri=https://homepickkr.duckdns.org/sns/google-callback` (https 로 정상 생성)
+- 경고로 남은 항목
+  - `FIREBASE_WEB_*` 6개 없음 → 회원가입 휴대폰 인증 동작 안 함
+  - `GH_ACTIONS_TOKEN` 없음 → `/api/ai-data/status` 가 `configured:false`, AI 재학습 버튼 사용 불가 (추천·인사이트는 정상)
+- 공개 HTTPS 확인 단계는 기동 직후 일시적으로 000 이 나와 최대 5회 재시도로 보완
+
 ## 검증 (작업 시점)
 
 - `deploy.yml` YAML 구조 확인 (build → deploy, 단계 4개), EC2 에서 실행할 스크립트 `bash -n` 문법 검사 통과
