@@ -14,7 +14,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 45  # 수도권 83개 시·군·구 × 6개월(약 500회 호출) 크롤링
+    timeout-minutes: 30  # 수도권 83개 시·군·구 × 6개월(약 500회 호출), 병렬 크롤링으로 보통 5분 이내
     defaults:
       run:
         working-directory: ml-pipeline
@@ -34,9 +34,11 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 공공데이터 크롤링
+        timeout-minutes: 20  # 공공데이터 API 장애로 멈춰도 무한히 기다리지 않음
         env:
           DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
           CRAWL_MONTHS: '6'
+          CRAWL_WORKERS: '8'
         run: python 01_crawl.py
 
       - name: 데이터 전처리

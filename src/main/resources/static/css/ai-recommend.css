@@ -1534,3 +1534,11 @@
 .ai-plot {
     overflow: hidden;
 }
+
+/* 비로그인 안내 */
+.ai-login-link {
+    margin-left: 0.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    text-decoration: underline;
+}

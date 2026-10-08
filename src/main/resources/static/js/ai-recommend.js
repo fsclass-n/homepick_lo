@@ -198,8 +198,21 @@ document.addEventListener('DOMContentLoaded', () => {
         result.innerHTML = html;
     }
 
+    // AI 단지 추천·재학습은 로그인 사용자만 (서버가 템플릿에 data-logged-in 으로 전달)
+    const isLoggedIn = document.querySelector('.ai-main').dataset.loggedIn === 'true';
+
+    function showLoginRequired(){
+        renderMessage(`<i class="bi bi-lock" aria-hidden="true"></i> AI 단지 추천은 로그인 후 이용할 수 있습니다.
+            <a href="/member/login" class="ai-login-link">로그인하기</a>`);
+        resultEmpty.classList.add('d-none');
+        result.classList.remove('d-none');
+        showReportPanel('panelRecommend');
+        document.getElementById('aiReport').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!isLoggedIn) return showLoginRequired();
         if (!validate()) return;
 
         const condition = {
@@ -364,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (refreshBtn) {
         refreshBtn.addEventListener('click', async () => {
-            if (!confirm('공공데이터를 새로 크롤링하고 AI를 다시 학습합니다.\n완료까지 약 7~10분 걸립니다. 진행할까요?')) return;
+            if (!confirm('공공데이터를 새로 크롤링하고 AI를 다시 학습합니다.\n완료까지 보통 3~5분 걸립니다. 진행할까요?')) return;
 
             refreshBtn.disabled = true;
             try {
@@ -388,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 페이지 진입 시: 데이터 기준 시각 표시 + 진행 중인 갱신이 있으면 이어서 표시
+    // 페이지 진입 시: 데이터 기준 시각 표시 + (로그인 사용자만) 진행 중인 갱신이 있으면 이어서 표시
     updateDataInfo();
-    poll();
+    if (isLoggedIn) poll();
 });

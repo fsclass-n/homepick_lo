@@ -41,7 +41,8 @@
         </div>
     </section>
 
-    <main class="ai-main">
+    <!-- data-logged-in: AI 단지 추천·재학습은 로그인 사용자만 (ai-recommend.js 에서 확인) -->
+    <main class="ai-main" th:attr="data-logged-in=${user != null}">
         <!-- 2. 조건 입력: 전체 폭 검색 바 -->
         <section class="ai-search-band">
             <div class="container">
@@ -101,7 +102,7 @@
                         <span>최신 데이터로 AI 재학습</span>
                     </button>
                     <a th:unless="${user != null}" href="/member/login" th:href="@{/member/login}"
-                        class="ai-login-hint flex-shrink-0">로그인하면 최신 데이터로 AI를 재학습할 수 있어요</a>
+                        class="ai-login-hint flex-shrink-0"><i class="bi bi-lock" aria-hidden="true"></i> AI 단지 추천과 AI 재학습은 로그인 후 이용할 수 있어요</a>
                 </div>
 
                 <!-- 크롤링·학습 진행 표시 -->
@@ -124,7 +125,7 @@
                         <li data-step="4">서버 반영</li>
                     </ol>
                     <p id="aiRefreshNote" class="ai-refresh-note mb-0">
-                        완료까지 약 7~10분 걸립니다(수도권 83개 시·군·구 수집). 페이지를 떠나도 계속 진행되며, 끝나기 전까지는 기존 데이터로 추천합니다.
+                        완료까지 보통 3~5분 걸립니다(수도권 83개 시·군·구 병렬 수집, 공공데이터 API가 느린 날은 더 걸릴 수 있음). 페이지를 떠나도 계속 진행되며, 끝나기 전까지는 기존 데이터로 추천합니다.
                     </p>
                 </div>
             </div>
