@@ -8,10 +8,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnTotop = document.getElementById('btnTotop');
 
     if (btnTotop) {
-        // 300px 이상 스크롤 시 버튼 표시
-        window.addEventListener('scroll', function () {
+        // 300px 이상 스크롤 시 버튼 표시 (로드 직후 상태도 반영)
+        const toggleTotop = function () {
             btnTotop.classList.toggle('show', window.scrollY > 300);
-        });
+        };
+        window.addEventListener('scroll', toggleTotop, { passive: true });
+        toggleTotop();
 
         // 클릭 시 최상단으로 부드럽게 이동
         btnTotop.addEventListener('click', function () {
