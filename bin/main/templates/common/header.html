@@ -16,9 +16,10 @@
     <!-- 상단 고정 반응형 헤더 (Bootstrap 5 Flexbox 레이아웃 적용) -->
     <header id="header" class="sticky-top" th:fragment="headerFragment">
         <div class="container-fluid px-3 px-md-4 px-xl-5 d-flex align-items-center justify-content-between">
+            
             <!-- 로고 -->
             <h1 class="logo m-0 text-center" style="letter-spacing: 0.3rem;">
-                <a href="index.html" class="text-decoration-none text-white">HOMEPICK<span class="d-block fs-6" style="letter-spacing: normal;">홈픽</span></a>
+                <a href="index.html" th:href="@{/}" class="text-decoration-none text-white">HOMEPICK<span class="d-block fs-6" style="letter-spacing: normal;">홈픽</span></a>
             </h1>
 
             <!-- GNB 네비게이션 -->
@@ -45,7 +46,7 @@
                         </a>
                         <ul class="depth2 list-unstyled m-0 p-0">
                             <li><a href="templates/sub/product.html" class="text-decoration-none">통합 검색 리스트</a></li>
-                            <li><a href="#" class="text-decoration-none">지도 중심 매물 조회</a></li>
+                            <li><a href="#" th:href="@{/map}" class="text-decoration-none">지도 중심 실거래 조회</a></li>
                             <li><a href="#" class="text-decoration-none">매물 상세 정보</a></li>
                             <li><a href="#" class="text-decoration-none">중개사 찾기 및 상담</a></li>
                         </ul>
@@ -58,7 +59,7 @@
                         <ul class="depth2 list-unstyled m-0 p-0">
                             <li><a href="templates/sub/dashboard.html" class="text-decoration-none">종합 시장 분석 대시보드</a></li>
                             <li><a href="#" class="text-decoration-none">지역별 트렌드 분석</a></li>
-                            <li><a href="#" class="text-decoration-none">AI 맞춤 매물 추천</a></li>
+                            <li><a href="#" th:href="@{/ai/recommend}" class="text-decoration-none">AI 실거래 단지 추천</a></li>
                             <li><a href="#" class="text-decoration-none">부동산 뉴스 & 칼럼</a></li>
                             <li><a href="#" class="text-decoration-none">부동산 세금 · 계산기</a></li>
                         </ul>
@@ -80,7 +81,7 @@
                             <i class="fa-solid fa-chevron-right arrow-icon d-lg-none text-secondary"></i>
                         </a>
                         <ul class="depth2 list-unstyled m-0 p-0">
-                            <li><a href="templates/sub/faq.html" class="text-decoration-none">자주 묻는 질문 FAQ</a></li>
+                            <li><a href="templates/qna/list.html" th:href="@{/qna}" class="text-decoration-none">자유 게시판 QnA</a></li>
                             <li><a href="#" class="text-decoration-none">1:1 문의 게시판</a></li>
                         </ul>
                     </li>
@@ -107,15 +108,10 @@
                         <a href="#" class="sns-link text-decoration-none text-white"><span>SNS</span></a>
                     </div>
                     <span class="text-white fw-bold">·</span>
-                    <!-- <div class="login d-flex gap-3 fs-6">
-                        <a href="templates/member/login.html" class="text-decoration-none text-white">로그인</a>
-                        <a href="templates/member/join.html" class="text-decoration-none text-white">회원가입</a>
-                    </div> -->
+                    <div class="login d-flex gap-3 fs-6">
+                        <!-- <a href="templates/member/login.html" class="text-decoration-none text-white">로그인</a>
+                        <a href="templates/member/join.html" class="text-decoration-none text-white">회원가입</a> -->
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7139bed0d4310330e1419e5290610a922d18f2d8
                 <!-- [미로그인 상태] (user == null) -->
                 <th:block th:if="${user == null}">
                     <!-- 정적 파일 열기 시 member 하위 폴더 이동 / 서버 구동 시 URL 매핑 -->
@@ -129,16 +125,13 @@
                         <strong th:text="${user.name}">홍길동</strong>님 환영합니다!
                     </span>
                     <span class="text-white-50 small">·</span>
-<<<<<<< HEAD
                     <a href="member/list.html" th:href="@{/member/list}" class="hp-sub-link">회원목록</a>
-=======
-                    <a href="member/admin.html" th:href="@{/member/admin}" class="hp-sub-link">회원목록</a>
->>>>>>> 7139bed0d4310330e1419e5290610a922d18f2d8
                     <span class="text-white-50 small">·</span>
                     <a href="index.html" th:href="@{/member/logout}" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.8rem;">로그아웃</a>
                 </th:block>
 
 
+                    </div>
                 </div>
                 <!-- 모바일 햄버거 버튼 -->
                 <button type="button" class="btn-hamburger d-lg-none" aria-label="메뉴 열기">
