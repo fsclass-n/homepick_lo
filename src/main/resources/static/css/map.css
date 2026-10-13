@@ -101,6 +101,8 @@
 
 .map-legend {
     color: #6b7580;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .map-dot {

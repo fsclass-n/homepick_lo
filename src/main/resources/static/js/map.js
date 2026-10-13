@@ -5,10 +5,14 @@
  * - 같은 좌표·단지명의 평형(방 수)들을 하나의 단지 마커로 묶고, 마커가 많으면 클러스터로 묶어 표시
  * - 목록은 현재 지도에 보이는 영역의 단지만, 필터(지역·예산·방 수·단지명·저평가)와 정렬 적용
  * - AI 저평가: RandomForest 적정가 ÷ 실제 거래가(valueScore) ≥ 1.05 (적정가보다 5% 이상 싸게 거래)
+ *   단, 할인율 40% 초과(valueScore > 1.67)는 지분·증여성 등 특수 거래 가능성이 커서 제외 (시장 리포트와 같은 기준)
  */
 document.addEventListener('DOMContentLoaded', () => {
     const DATA_URL = '/api/ai-data/apartments';
     const VALUE_MIN = 1.05;
+    const VALUE_MAX = 1 / (1 - 0.4);
+    const isValue = v => v >= VALUE_MIN && v <= VALUE_MAX;
+    const valueRank = v => (v <= VALUE_MAX ? v : 0); // 특수 거래 의심은 저평가순 맨 뒤로
     const LIST_LIMIT = 80;
     const SIDO_ORDER = ['서울', '인천', '경기'];
 
@@ -75,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return c.items.filter(it =>
             (!budget || it.price <= budget) &&
             (!rooms || it.rooms === rooms) &&
-            (!f.value.checked || it.valueScore >= VALUE_MIN));
+            (!f.value.checked || isValue(it.valueScore)));
     }
 
     function applyFilter(fitBounds = false){
@@ -88,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const shown = matchItems(c);
             if (!shown.length) return;
             c.shown = shown;
-            c.best = shown.reduce((a, b) => (b.valueScore > a.valueScore ? b : a));
+            c.best = shown.reduce((a, b) => (valueRank(b.valueScore) > valueRank(a.valueScore) ? b : a));
             c.minPrice = Math.min(...shown.map(it => it.price));
             c.recent = shown.reduce((a, b) => (b.lastDealDate > a.lastDealDate ? b : a)).lastDealDate;
             filtered.push(c);
@@ -110,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ---------- 목록: 지도에 보이는 영역의 단지 ---------- */
     function sortList(arr){
         const by = {
-            value: (a, b) => b.best.valueScore - a.best.valueScore,
+            value: (a, b) => valueRank(b.best.valueScore) - valueRank(a.best.valueScore),
             priceAsc: (a, b) => a.minPrice - b.minPrice,
             priceDesc: (a, b) => b.minPrice - a.minPrice,
             recent: (a, b) => b.recent.localeCompare(a.recent),
@@ -126,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         sortList(visible);
         countEl.textContent = map
-            ? `지도 영역 ${visible.length.toLocaleString()}개 단지 (조건 일치 ${filtered.length.toLocaleString()}개)`
+            ? `지도 영역 ${visible.length.toLocaleString()} / 조건 일치 ${filtered.length.toLocaleString()}개 단지`
             : `조건 일치 ${visible.length.toLocaleString()}개 단지`;
 
         if (!visible.length) {
@@ -136,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const rows = visible.slice(0, LIST_LIMIT).map(c => {
-            const isValue = c.best.valueScore >= VALUE_MIN;
+            const value = isValue(c.best.valueScore);
             const rooms = [...new Set(c.shown.map(it => it.rooms))].map(r => (r >= 4 ? '4방+' : `${r}방`)).join('·');
             return `<li><button type="button" class="map-item${c.key === activeKey ? ' is-active' : ''}" data-key="${esc(c.key)}">
                 <div class="d-flex justify-content-between align-items-start gap-2">
@@ -147,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="map-item-price">${won(c.minPrice)}~</div>
                 </div>
                 <div class="d-flex align-items-center gap-1 flex-wrap mt-1 map-item-meta">
-                    ${isValue ? `<span class="map-tag map-tag-value">AI 저평가 ${discount(c.best.valueScore)}%↓</span>` : ''}
+                    ${value ? `<span class="map-tag map-tag-value">AI 저평가 ${discount(c.best.valueScore)}%↓</span>` : ''}
                     <span class="map-tag">${rooms}</span>
                     <span class="map-tag">${c.items[0].buildYear}년식</span>
                     <span class="ms-auto">최근 거래 ${esc(c.recent)}</span>
@@ -181,24 +185,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let IMG_NORMAL, IMG_VALUE;
 
     function markerOf(c){
-        const isValue = c.best.valueScore >= VALUE_MIN;
+        const value = isValue(c.best.valueScore);
         if (!c.marker) {
             c.marker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(c.lat, c.lng), title: c.name });
             kakao.maps.event.addListener(c.marker, 'click', () => openOverlay(c));
         }
-        c.marker.setImage(isValue ? IMG_VALUE : IMG_NORMAL);
-        c.marker.setZIndex(isValue ? 2 : 1);
+        c.marker.setImage(value ? IMG_VALUE : IMG_NORMAL);
+        c.marker.setZIndex(value ? 2 : 1);
         return c.marker;
     }
 
     function popupHtml(c){
         const rows = c.shown.map(it => {
-            const isValue = it.valueScore >= VALUE_MIN;
+            const value = isValue(it.valueScore);
             return `<tr>
                 <td>${it.area}㎡ <span class="text-secondary">(${pyeong(it.area)}평)</span></td>
                 <td class="num"><strong>${won(it.lastPrice)}</strong></td>
                 <td class="num">${won(it.predictedPrice)}</td>
-                <td class="num">${isValue ? `<span class="map-tag map-tag-value">${discount(it.valueScore)}%↓</span>` : '-'}</td>
+                <td class="num">${value ? `<span class="map-tag map-tag-value">${discount(it.valueScore)}%↓</span>` : '-'}</td>
             </tr>`;
         }).join('');
         const deals = c.shown.reduce((s, it) => s + it.dealCount, 0);
