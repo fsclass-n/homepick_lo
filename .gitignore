@@ -228,3 +228,5 @@ HELP.md
 # ml-pipeline (Python): 중간 산출물은 커밋하지 않음, 최종 JSON만 커밋
 ml-pipeline/data/
 
+# VS Code(Java 확장) 자동 빌드 사본: 실행·배포와 무관 (Gradle 은 build/, Docker 는 .dockerignore 로 제외)
+bin/
