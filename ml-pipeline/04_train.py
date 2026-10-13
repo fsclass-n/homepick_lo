@@ -38,7 +38,9 @@ def build_complex_table(df: pd.DataFrame) -> pd.DataFrame:
         lastPrice=("price", "last"),
         lastDealDate=("dealDate", "last"),
         dealCount=("price", "size"),
+        jibun=("jibun", "last"),
     ).reset_index()
+    table["jibun"] = table["jibun"].fillna("").astype(str)
     return table
 
 
@@ -269,7 +271,7 @@ def main():
     # 3) 브라우저용 JSON 출력 (필요한 컬럼만)
     items = [{
         "id": i,
-        "sido": r.sido, "sgg": r.sgg, "umd": r.umdNm, "name": r.aptNm,
+        "sido": r.sido, "sgg": r.sgg, "umd": r.umdNm, "name": r.aptNm, "jibun": r.jibun,
         "rooms": int(r.rooms), "area": round(float(r.area), 1), "floor": int(r.floor),
         "buildYear": int(r.buildYear),
         "price": int(r.price), "lastPrice": int(r.lastPrice),

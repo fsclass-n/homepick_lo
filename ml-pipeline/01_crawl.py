@@ -1,6 +1,7 @@
 """1단계: 공공데이터 API 크롤링 → data/raw/{지역코드}_{년월}.json"""
 import json
 import os
+import re
 import threading
 import time
 import xml.etree.ElementTree as ET
@@ -110,7 +111,9 @@ def main():
             if error:
                 # 재시도 후에도 실패한 지역·월은 건너뛰고 계속 (일부 누락은 학습에 큰 영향 없음)
                 failures.append(f"{sido} {sgg} {deal_ymd}")
-                print(f"[경고] {sido} {sgg} {deal_ymd} 수집 실패: {error}", flush=True)
+                # 오류 메시지의 요청 URL 에 인증키가 포함되므로 가리고 출력 (Actions 로그 노출 방지)
+                masked = re.sub(r"serviceKey=[^&\s)]+", "serviceKey=***", str(error))
+                print(f"[경고] {sido} {sgg} {deal_ymd} 수집 실패: {masked}", flush=True)
             else:
                 print(f"[{done}/{total}] {sido} {sgg} {deal_ymd}: {count}건", flush=True)
 

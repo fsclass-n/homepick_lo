@@ -13,6 +13,9 @@ PROCESSED_CSV = PROCESSED_DIR / "apartments.csv"
 # 최종 결과물: Spring Boot 정적 리소스 → /data/apartments.json 으로 제공
 OUTPUT_JSON = PROJECT_DIR / "src" / "main" / "resources" / "static" / "data" / "apartments.json"
 
+# 단지 주소 → 좌표 캐시 (단지 위치는 바뀌지 않으므로 Git 에 커밋해 재학습 때 새 단지만 조회)
+GEOCODE_CACHE = BASE_DIR / "geocode_cache.json"
+
 # 국토교통부_아파트 매매 실거래가 자료
 API_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade"
 

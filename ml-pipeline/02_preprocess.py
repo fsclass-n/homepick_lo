@@ -28,6 +28,8 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
         "lawdCd": df["lawdCd"],
         "aptNm": df["aptNm"].str.strip(),
         "umdNm": df["umdNm"].str.strip(),
+        # 지번: 지도 표시용 좌표 변환(05_geocode.py)에 사용
+        "jibun": df["jibun"].fillna("").str.strip() if "jibun" in df.columns else "",
         "price": pd.to_numeric(df["dealAmount"].str.replace(",", ""), errors="coerce"),  # 만원
         "area": pd.to_numeric(df["excluUseAr"], errors="coerce"),                       # ㎡
         "floor": pd.to_numeric(df["floor"], errors="coerce"),

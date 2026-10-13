@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_NOTE = panelNote.textContent.trim();
 
     // GitHub Actions 단계 이름 → 화면 단계 번호
-    const STEP_INDEX = { '공공데이터 크롤링': 1, '데이터 전처리': 2, '머신러닝 학습': 3, '학습 결과 반영': 4 };
+    const STEP_INDEX = { '공공데이터 크롤링': 1, '데이터 전처리': 2, '머신러닝 학습': 3, '단지 좌표 변환': 3, '학습 결과 반영': 4 };
     const STEP_TITLE = [
         '크롤링 환경을 준비하는 중...',
         '최신 실거래 데이터를 크롤링하는 중...',

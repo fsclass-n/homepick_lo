@@ -47,12 +47,20 @@ jobs:
       - name: 머신러닝 학습
         run: python 04_train.py
 
+      # 지도 중심 실거래 조회용 좌표: 캐시(geocode_cache.json)에 없는 새 단지만 카카오 로컬 API 로 조회
+      - name: 단지 좌표 변환
+        timeout-minutes: 10
+        env:
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY || secrets.KAKAO_CLIENT_ID }}
+        run: python 05_geocode.py
+
       - name: 학습 결과 반영
         working-directory: .
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/main/resources/static/data/apartments.json
+          git add ml-pipeline/geocode_cache.json 2>/dev/null || true
           # [skip render]: 서버가 GitHub 에서 직접 최신 데이터를 받으므로 Render 재배포(세션 초기화) 불필요
           git commit -m "chore: AI 추천 데이터 갱신 (실거래가 크롤링·재학습) [skip render]"
           git pull --rebase origin main
