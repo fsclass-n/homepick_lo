@@ -8,11 +8,14 @@
     <link rel="icon" href="/favicon.ico" th:href="@{/favicon.ico}" sizes="any">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" th:href="@{/favicon.svg}">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" th:href="@{/apple-touch-icon.png}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- 커스텀 헤더 CSS -->
     <link rel="stylesheet" href="../static/css/common.css" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/header.css}">
     <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" href="../static/css/qna.css" th:href="@{/css/qna.css}">
 </head>
 
 <body class="bg-light">
@@ -21,13 +24,42 @@
     <!-- common 폴더의 header.html 내 headerFragment 연결 -->
     <div th:replace="~{common/header :: headerFragment}"></div>
 
+    <!-- 상단 제목 (AI 실거래 단지 추천 페이지와 같은 가운데 정렬 히어로) -->
+    <section class="qna-hero position-relative text-white text-center overflow-hidden">
+        <div class="qna-hero-glow position-absolute top-0 start-0 w-100 h-100"></div>
+        <div class="container position-relative py-5">
+            <i class="bi bi-chat-square-text qna-hero-icon d-inline-block mb-2" aria-hidden="true"></i>
+            <h1 class="qna-hero-title fw-bold mb-2">Q&A 게시판</h1>
+            <p class="qna-hero-desc mb-4">홈픽 이용 중 궁금한 점을 묻고 답변을 확인하는 공간입니다.</p>
 
-    <div class="my-5 py-5">
-        <div class="container py-5">
-            <div class="mb-4">
-                <h2 class="fw-bold">Q&A 게시판</h2>
+            <!-- 검색: 검색 종류 + 검색어 (GET /qna?type=..&keyword=.., 검색하면 1페이지부터) -->
+            <form class="qna-search mx-auto" th:action="@{/qna}" method="get" role="search">
+                <div class="input-group">
+                    <select name="type" class="form-select qna-search-type" aria-label="검색 종류">
+                        <option value="all" th:selected="${type == 'all'}">제목+내용</option>
+                        <option value="title" th:selected="${type == 'title'}">제목</option>
+                        <option value="content" th:selected="${type == 'content'}">내용</option>
+                        <option value="writer" th:selected="${type == 'writer'}">작성자</option>
+                    </select>
+                    <input type="search" name="keyword" class="form-control" th:value="${keyword}"
+                        maxlength="50" placeholder="검색어를 입력하세요" aria-label="검색어">
+                    <button type="submit" class="btn qna-search-btn"><i class="bi bi-search" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">검색</span></button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <div class="qna-main pb-5">
+        <div class="container">
+            <div class="qna-meta d-flex justify-content-between align-items-center mb-2 px-1">
+                <span th:if="${keyword == null}">전체 <strong th:text="${qnaPage.totalCount}">0</strong>건</span>
+                <span th:if="${keyword != null}">
+                    '<strong th:text="${keyword}">검색어</strong>' 검색 결과 <strong th:text="${qnaPage.totalCount}">0</strong>건
+                    <a th:href="@{/qna}" class="qna-reset ms-2"><i class="bi bi-x-circle" aria-hidden="true"></i> 검색 해제</a>
+                </span>
+                <span th:text="|${qnaPage.page} / ${qnaPage.totalPages} 페이지|">1 / 1 페이지</span>
             </div>
-            <div class="card shadow-sm">
+            <div class="card shadow-sm qna-card">
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0 text-center align-middle">
                         <thead class="table-dark">
@@ -41,7 +73,14 @@
                         </thead>
                         <tbody>
                             <tr th:if="${#lists.isEmpty(qnaList)}">
-                                <td colspan="5" class="py-4 text-muted">등록된 질문이 없습니다.</td>
+                                <td colspan="5" class="py-5 text-muted">
+                                    <span th:if="${keyword == null}">등록된 질문이 없습니다.</span>
+                                    <span th:if="${keyword != null}">
+                                        <i class="bi bi-search d-block fs-3 mb-2" aria-hidden="true"></i>
+                                        '<strong th:text="${keyword}">검색어</strong>'에 대한 검색 결과가 없습니다.<br>
+                                        <a th:href="@{/qna}">전체 목록 보기</a>
+                                    </span>
+                                </td>
                             </tr>
                             <tr th:each="qna : ${qnaList}">
                                 <!-- 번호 -->
@@ -66,6 +105,33 @@
                     </table>
                 </div>
             </div>
+
+            <!-- 페이지네이션: 맨 앞 · 이전 · 번호(5개) · 다음 · 맨 뒤 -->
+            <nav th:if="${qnaPage.totalCount > 0}" class="qna-pager mt-4" aria-label="Q&A 페이지 이동">
+                <ul class="pagination justify-content-center flex-wrap mb-0">
+                    <li class="page-item" th:classappend="${!qnaPage.hasPrev()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/qna} + '?page=' + 1 + ${searchQuery}" aria-label="맨 앞" title="맨 앞">
+                            <i class="bi bi-chevron-double-left" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">맨 앞</span></a>
+                    </li>
+                    <li class="page-item" th:classappend="${!qnaPage.hasPrev()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/qna} + '?page=' + ${qnaPage.page - 1} + ${searchQuery}" aria-label="이전" title="이전">
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">이전</span></a>
+                    </li>
+                    <li class="page-item" th:each="n : ${#numbers.sequence(qnaPage.startPage, qnaPage.endPage)}"
+                        th:classappend="${n == qnaPage.page} ? 'active'">
+                        <a class="page-link" th:href="@{/qna} + '?page=' + ${n} + ${searchQuery}" th:text="${n}"
+                            th:attr="aria-current=${n == qnaPage.page} ? 'page' : null">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${!qnaPage.hasNext()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/qna} + '?page=' + ${qnaPage.page + 1} + ${searchQuery}" aria-label="다음" title="다음">
+                            <span class="d-none d-sm-inline me-1">다음</span><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+                    </li>
+                    <li class="page-item" th:classappend="${!qnaPage.hasNext()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/qna} + '?page=' + ${qnaPage.totalPages} + ${searchQuery}" aria-label="맨 뒤" title="맨 뒤">
+                            <span class="d-none d-sm-inline me-1">맨 뒤</span><i class="bi bi-chevron-double-right" aria-hidden="true"></i></a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 
