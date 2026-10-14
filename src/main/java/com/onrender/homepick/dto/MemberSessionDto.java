@@ -8,4 +8,14 @@ import lombok.Getter;
 public class MemberSessionDto {
     private String userId;
     private String name;
+    private String role;    // USER | ADMIN (member.role)
+
+    public MemberSessionDto(String userId, String name){
+        this(userId, name, "USER");
+    }
+
+    /** 관리자 (Q&A 답변 등록 권한) */
+    public boolean isAdmin(){
+        return "ADMIN".equals(role);
+    }
 }

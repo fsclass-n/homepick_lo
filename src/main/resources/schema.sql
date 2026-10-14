@@ -32,9 +32,22 @@ CREATE TABLE IF NOT EXISTS qna (
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
     writer VARCHAR(50) NOT NULL,
+    writer_id VARCHAR(50) NULL,          -- 작성 회원 아이디 (본인 글 삭제 확인용, 예전 글은 NULL)
     status VARCHAR(20) DEFAULT '대기중',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    answer TEXT NULL,                    -- 관리자 답변 (없으면 NULL)
+    answer_writer VARCHAR(50) NULL,      -- 답변한 관리자 이름
+    answered_at DATETIME NULL            -- 답변 일시
 ) AUTO_ID_CACHE 1;
+
+-- 이미 만들어진 qna 테이블에 컬럼 추가 (2026-10-14 TiDB 반영 완료, 기존 글 유지)
+-- ALTER TABLE qna ADD COLUMN writer_id VARCHAR(50) NULL AFTER writer;
+-- ALTER TABLE qna ADD COLUMN answer TEXT NULL;
+-- ALTER TABLE qna ADD COLUMN answer_writer VARCHAR(50) NULL;
+-- ALTER TABLE qna ADD COLUMN answered_at DATETIME NULL;
+
+-- Q&A 답변 관리자 지정 (2026-10-14: hong → hpadmin 으로 아이디 변경 후 관리자 지정, 비밀번호 그대로)
+-- UPDATE member SET user_id = 'hpadmin', role = 'ADMIN' WHERE user_id = 'hong';
 
 
 -- qna 게시판 테스트용 데이터

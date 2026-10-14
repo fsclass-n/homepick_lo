@@ -98,7 +98,8 @@ class QnaWriteTests {
                 .andExpect(flash().attributeExists("message"));
 
         assertThat(count()).isEqualTo(before + 1);
-        Map<String, Object> row = jdbc.queryForMap("SELECT title, content, writer, status FROM qna ORDER BY id DESC LIMIT 1");
+        Map<String, Object> row = jdbc.queryForMap("SELECT title, content, writer, writer_id, status FROM qna ORDER BY id DESC LIMIT 1");
+        assertThat(row.get("writer_id")).isEqualTo("tester01"); // 본인 확인(삭제)용 아이디
         assertThat(row.get("title")).isEqualTo("테스트 질문 제목");
         assertThat(row.get("content")).isEqualTo("첫 줄\n둘째 줄");
         assertThat(row.get("writer")).isEqualTo("테스트회원");

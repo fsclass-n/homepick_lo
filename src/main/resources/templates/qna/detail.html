@@ -31,6 +31,12 @@
 
     <div class="qna-main pb-5">
         <div class="container qna-write-wrap">
+            <div th:if="${message}" class="alert qna-alert d-flex align-items-center gap-2 py-2 mb-2" role="status">
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i><span th:text="${message}">답변이 등록되었습니다.</span>
+            </div>
+            <div th:if="${errorMessage}" class="alert qna-alert qna-alert-warn d-flex align-items-center gap-2 py-2 mb-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><span th:text="${errorMessage}">본인이 작성한 글만 삭제할 수 있습니다.</span>
+            </div>
             <article class="card shadow-sm qna-card">
                 <!-- 1. 제목 · 상태 · 작성 정보 -->
                 <header class="qna-detail-head">
@@ -51,8 +57,17 @@
                 <!-- 2. 본문: th:text 로 출력(태그는 글자로만) + 줄바꿈 유지(CSS pre-wrap) -->
                 <div class="qna-detail-body" th:text="${qna.content}">질문 내용</div>
 
-                <!-- 3. 답변 영역 (답변 기능은 아직 없음: 상태로 안내) -->
-                <section class="qna-answer" aria-label="답변">
+                <!-- 3. 답변 영역 -->
+                <section th:if="${qna.answer != null}" class="qna-answer-box" aria-labelledby="answerTitle">
+                    <header class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <span class="qna-answer-badge" id="answerTitle"><i class="bi bi-patch-check-fill" aria-hidden="true"></i> 홈픽 답변</span>
+                        <span class="qna-detail-meta" th:text="${qna.answerWriter}">관리자</span>
+                        <time class="qna-detail-meta" th:if="${qna.answeredAt != null}"
+                            th:text="${#temporals.format(qna.answeredAt, 'yyyy-MM-dd HH:mm')}">2026-10-14 12:00</time>
+                    </header>
+                    <div class="qna-answer-body" th:text="${qna.answer}">답변 내용</div>
+                </section>
+                <section th:if="${qna.answer == null}" class="qna-answer" aria-label="답변">
                     <div th:if="${qna.status == '답변완료'}" class="d-flex align-items-center gap-2">
                         <i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>
                         <span>답변이 완료된 질문입니다.</span>
@@ -62,6 +77,33 @@
                         <span>답변을 준비하고 있어요. 답변이 등록되면 상태가 <strong>답변완료</strong>로 바뀝니다.</span>
                     </div>
                 </section>
+
+                <!-- 4. 관리자 답변 입력 (관리자에게만 표시, 서버에서도 관리자 확인) -->
+                <form th:if="${isAdmin}" class="qna-answer-form" id="qnaAnswerForm" method="post"
+                    th:action="@{/qna/{id}/answer(id=${qna.id})}" novalidate>
+                    <input type="hidden" name="page" th:value="${listPage}">
+                    <input type="hidden" name="type" th:value="${searchType}">
+                    <input type="hidden" name="keyword" th:value="${searchKeyword}">
+                    <div class="d-flex justify-content-between align-items-end mb-1">
+                        <label for="answer" class="form-label qna-label mb-0">
+                            <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                            <span th:text="${qna.answer == null} ? '관리자 답변 작성' : '관리자 답변 수정'">관리자 답변 작성</span>
+                        </label>
+                        <small class="qna-counter"><span id="answerCount">0</span> / <span th:text="${answerMax}">2000</span></small>
+                    </div>
+                    <textarea id="answer" name="answer" class="form-control qna-input" rows="6" th:attr="maxlength=${answerMax}"
+                        th:classappend="${answerError != null} ? 'is-invalid'"
+                        th:text="${answerDraft != null} ? ${answerDraft} : ${qna.answer}"
+                        placeholder="질문자에게 보여질 답변을 입력하세요." required></textarea>
+                    <div class="invalid-feedback" id="answerFeedback"
+                        th:text="${answerError != null} ? ${answerError} : '답변 내용을 입력해 주세요.'">답변 내용을 입력해 주세요.</div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button type="submit" class="btn qna-btn qna-submit-btn" id="btnQnaAnswer">
+                            <i class="bi bi-reply" aria-hidden="true"></i>
+                            <span th:text="${qna.answer == null} ? '답변 등록' : '답변 수정'">답변 등록</span>
+                        </button>
+                    </div>
+                </form>
             </article>
 
             <!-- 4. 이전 글 · 다음 글 (번호 기준: 이전 = 더 오래된 글) -->
@@ -88,9 +130,45 @@
                 <a th:href="@{/qna} + '?' + ${listQuery}" class="btn btn-outline-secondary qna-btn">
                     <i class="bi bi-list-ul" aria-hidden="true"></i> 목록
                 </a>
-                <a th:href="@{/qna/write}" class="btn qna-btn qna-submit-btn">
-                    <i class="bi bi-pencil-square" aria-hidden="true"></i> 글쓰기
-                </a>
+                <div class="d-flex gap-2">
+                    <!-- 수정: 본인 글이고 답변 전일 때만 -->
+                    <a th:if="${canEdit}" th:href="@{/qna/{id}/edit(id=${qna.id})} + '?' + ${listQuery}"
+                        class="btn btn-outline-secondary qna-btn">
+                        <i class="bi bi-pencil" aria-hidden="true"></i> 수정
+                    </a>
+                    <!-- 삭제: 본인 글에만 표시, 확인 창에서 한 번 더 확인 -->
+                    <button th:if="${canDelete}" type="button" class="btn qna-btn qna-delete-btn"
+                        data-bs-toggle="modal" data-bs-target="#qnaDeleteModal">
+                        <i class="bi bi-trash3" aria-hidden="true"></i> 삭제
+                    </button>
+                    <a th:href="@{/qna/write}" class="btn qna-btn qna-submit-btn">
+                        <i class="bi bi-pencil-square" aria-hidden="true"></i> 글쓰기
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 삭제 확인 창 -->
+    <div th:if="${canDelete}" class="modal fade" id="qnaDeleteModal" tabindex="-1" aria-labelledby="qnaDeleteTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content qna-modal">
+                <div class="modal-body text-center p-4">
+                    <i class="bi bi-trash3 qna-modal-icon d-block mb-2" aria-hidden="true"></i>
+                    <h2 id="qnaDeleteTitle" class="h5 fw-bold mb-2">이 글을 삭제할까요?</h2>
+                    <p class="text-secondary small mb-1 text-truncate" th:text="|'${qna.title}'|">'질문 제목'</p>
+                    <p class="text-secondary small mb-0">삭제한 글은 되돌릴 수 없습니다.</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center gap-2 pt-0 pb-4">
+                    <button type="button" class="btn btn-outline-secondary qna-btn" data-bs-dismiss="modal">취소</button>
+                    <!-- 보던 목록 페이지·검색 조건을 함께 보내 삭제 후 그 목록으로 돌아감 -->
+                    <form th:action="@{/qna/{id}/delete(id=${qna.id})}" method="post" class="m-0" id="qnaDeleteForm">
+                        <input type="hidden" name="page" th:value="${listPage}">
+                        <input type="hidden" name="type" th:value="${searchType}">
+                        <input type="hidden" name="keyword" th:value="${searchKeyword}">
+                        <button type="submit" class="btn qna-btn qna-delete-btn qna-delete-solid" id="btnQnaDelete">삭제하기</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -100,6 +178,37 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/header.js}"></script>
     <script th:src="@{/js/footer.js}"></script>
+    <script th:if="${canDelete}">
+        // 삭제하기 연타 방지
+        document.getElementById('qnaDeleteForm').addEventListener('submit', () => {
+            const btn = document.getElementById('btnQnaDelete');
+            btn.disabled = true;
+            btn.textContent = '삭제 중...';
+        });
+    </script>
+    <script th:if="${isAdmin}">
+        // 관리자 답변: 글자 수, 빈 칸 안내, 연타 방지 (최종 검사는 서버)
+        (() => {
+            const form = document.getElementById('qnaAnswerForm');
+            const input = document.getElementById('answer');
+            const count = document.getElementById('answerCount');
+            const update = () => { count.textContent = input.value.replace(/\r\n/g, '\n').length; };
+            update();
+            input.addEventListener('input', () => { update(); if (input.value.trim()) input.classList.remove('is-invalid'); });
+            form.addEventListener('submit', e => {
+                if (!input.value.trim()) {
+                    e.preventDefault();
+                    document.getElementById('answerFeedback').textContent = '답변 내용을 입력해 주세요.';
+                    input.classList.add('is-invalid');
+                    input.focus();
+                    return;
+                }
+                const btn = document.getElementById('btnQnaAnswer');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>저장 중...';
+            });
+        })();
+    </script>
 </body>
 
 </html>

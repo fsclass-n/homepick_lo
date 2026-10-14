@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -49,6 +50,12 @@ public class JdbcMemberRepository{
     // 아이디 중복 확인
     public boolean existsByUserId(String userId){
         return count("SELECT COUNT(*) FROM member WHERE user_id = ?", userId);
+    }
+
+    // 회원 권한 (USER | ADMIN), 값이 없으면 USER
+    public String findRole(String userId){
+        List<String> roles = jdbcTemplate.queryForList("SELECT role FROM member WHERE user_id = ?", String.class, userId);
+        return roles.isEmpty() || roles.get(0) == null ? "USER" : roles.get(0);
     }
 
     // 아이디로 로그인용 회원 조회 (user_id, password_hash, name)

@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
             firstInvalid.focus();
             return;
         }
-        // 등록 버튼 연타로 같은 글이 여러 번 저장되지 않게
+        // 등록 · 수정 버튼 연타로 여러 번 저장되지 않게
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>등록 중...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>저장 중...';
     });
 });

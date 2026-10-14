@@ -243,13 +243,83 @@ a.qna-neighbor:hover {
     min-width: 0;
 }
 
+/* 관리자 답변 */
+.qna-answer-box {
+    margin: 0 2rem 2rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    background: #f0f6fd;
+    border-left: 4px solid var(--color-primary);
+}
+
+.qna-answer-badge {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.qna-answer-body {
+    font-size: 0.97rem;
+    line-height: 1.85;
+    color: #2b3440;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.qna-answer-form {
+    margin: 0 2rem 2rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    border: 1px dashed #c9d6e3;
+    background: #fbfcfe;
+}
+
+/* 삭제 버튼 · 확인 창 */
+.qna-delete-btn {
+    background: #fff;
+    color: #c0392b;
+    border: 1px solid #f1c4bf;
+}
+
+.qna-delete-btn:hover,
+.qna-delete-btn:focus,
+.qna-delete-btn:disabled {
+    background: #c0392b;
+    border-color: #c0392b;
+    color: #fff;
+}
+
+.qna-delete-solid {
+    background: #c0392b;
+    border-color: #c0392b;
+    color: #fff;
+}
+
+.qna-delete-solid:hover,
+.qna-delete-solid:focus {
+    background: #a93226;
+    border-color: #a93226;
+}
+
+.qna-modal {
+    border: 0;
+    border-radius: 14px;
+}
+
+.qna-modal-icon {
+    font-size: 2rem;
+    color: #c0392b;
+}
+
 @media (max-width: 575.98px) {
     .qna-detail-head,
     .qna-detail-body {
         padding: 1.5rem 1.25rem;
     }
 
-    .qna-answer {
+    .qna-answer,
+    .qna-answer-box,
+    .qna-answer-form {
         margin: 0 1.25rem 1.5rem;
     }
 }

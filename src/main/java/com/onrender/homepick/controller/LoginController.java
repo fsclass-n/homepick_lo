@@ -38,7 +38,8 @@ public class LoginController{
             return "member/login";
         }
 
-        session.setAttribute("loginUser", new MemberSessionDto(member.getUserId(), member.getName()));
+        session.setAttribute("loginUser", new MemberSessionDto(member.getUserId(), member.getName(),
+                repository.findRole(member.getUserId())));
         return "redirect:" + LoginRedirect.pop(session); // 글쓰기 등에서 왔으면 그 페이지로
     }
 

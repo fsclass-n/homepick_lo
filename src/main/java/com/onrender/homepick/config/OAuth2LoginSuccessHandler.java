@@ -92,7 +92,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         }
 
         var session = request.getSession(true);
-        session.setAttribute("loginUser", new MemberSessionDto(userId, displayName));
+        session.setAttribute("loginUser", new MemberSessionDto(userId, displayName, repository.findRole(userId)));
         getRedirectStrategy().sendRedirect(request, response, LoginRedirect.pop(session)); // 글쓰기 등에서 왔으면 그 페이지로
     }
 

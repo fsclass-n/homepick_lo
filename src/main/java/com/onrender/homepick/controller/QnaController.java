@@ -69,8 +69,78 @@ public class QnaController{
         model.addAttribute("prev", qnaService.getPrev(id).orElse(null));
         model.addAttribute("next", qnaService.getNext(id).orElse(null));
         model.addAttribute("listQuery", listQuery);
-        model.addAttribute("user", session.getAttribute("loginUser"));
+        MemberSessionDto user = (MemberSessionDto) session.getAttribute("loginUser");
+        model.addAttribute("user", user);
+        // 삭제 버튼은 본인 글에만 (화면 표시용, 실제 권한은 삭제 요청 때 서버에서 다시 확인)
+        model.addAttribute("canDelete", QnaService.isOwner(qna, user != null ? user.getUserId() : null));
+        model.addAttribute("canEdit", QnaService.isEditable(qna, user != null ? user.getUserId() : null));
+        model.addAttribute("isAdmin", user != null && user.isAdmin()); // 답변 입력란 표시
+        model.addAttribute("answerMax", QnaService.ANSWER_MAX);
+        model.addAttribute("searchType", QnaService.normalizeType(type));
+        model.addAttribute("searchKeyword", QnaService.normalizeKeyword(keyword));
+        model.addAttribute("listPage", Math.max(parsePage(page), 1));
         return "qna/detail";
+    }
+
+    // 답변 등록·수정 (관리자만): 저장하면 상태가 '답변완료'로 바뀌고 같은 상세 화면으로 돌아감
+    @PostMapping("/{id:\\d{1,18}}/answer")
+    public String answer(@PathVariable long id,
+                         @RequestParam(defaultValue = "") String answer,
+                         @RequestParam(defaultValue = "1") String page,
+                         @RequestParam(defaultValue = "all") String type,
+                         @RequestParam(defaultValue = "") String keyword,
+                         HttpSession session, RedirectAttributes redirect){
+        String listQuery = "page=" + Math.max(parsePage(page), 1)
+                + searchQuery(QnaService.normalizeType(type), QnaService.normalizeKeyword(keyword));
+        String detailUrl = "redirect:/qna/" + id + "?" + listQuery;
+        MemberSessionDto user = (MemberSessionDto) session.getAttribute("loginUser");
+        if (user == null) {
+            LoginRedirect.save(session, "/qna/" + id + "?" + listQuery);
+            return "redirect:/member/login";
+        }
+        if (!user.isAdmin()) {
+            redirect.addFlashAttribute("errorMessage", "답변은 관리자만 등록할 수 있습니다.");
+            return detailUrl;
+        }
+        String cleanAnswer = answer.replace("\r\n", "\n").strip();
+        String error = QnaService.validateAnswer(cleanAnswer);
+        if (error != null) {
+            redirect.addFlashAttribute("answerError", error);
+            redirect.addFlashAttribute("answerDraft", cleanAnswer); // 입력한 내용 유지
+            return detailUrl;
+        }
+        if (!qnaService.answer(id, cleanAnswer, writerName(user))) {
+            redirect.addFlashAttribute("errorMessage", "삭제되었거나 존재하지 않는 글입니다.");
+            return "redirect:/qna?" + listQuery;
+        }
+        redirect.addFlashAttribute("message", "답변이 등록되었습니다.");
+        return detailUrl;
+    }
+
+    // 글 삭제 (본인 글만): 성공하면 보던 목록으로, 권한이 없으면 상세 화면에 안내
+    @PostMapping("/{id:\\d{1,18}}/delete")
+    public String delete(@PathVariable long id,
+                         @RequestParam(defaultValue = "1") String page,
+                         @RequestParam(defaultValue = "all") String type,
+                         @RequestParam(defaultValue = "") String keyword,
+                         HttpSession session, RedirectAttributes redirect){
+        String listQuery = "page=" + Math.max(parsePage(page), 1)
+                + searchQuery(QnaService.normalizeType(type), QnaService.normalizeKeyword(keyword));
+        MemberSessionDto user = (MemberSessionDto) session.getAttribute("loginUser");
+        if (user == null) {
+            LoginRedirect.save(session, "/qna/" + id + "?" + listQuery);
+            return "redirect:/member/login";
+        }
+        if (qnaService.getQna(id).isEmpty()) {
+            redirect.addFlashAttribute("errorMessage", "이미 삭제되었거나 존재하지 않는 글입니다.");
+            return "redirect:/qna?" + listQuery;
+        }
+        if (!qnaService.delete(id, user.getUserId())) {
+            redirect.addFlashAttribute("errorMessage", "본인이 작성한 글만 삭제할 수 있습니다.");
+            return "redirect:/qna/" + id + "?" + listQuery;
+        }
+        redirect.addFlashAttribute("message", "글이 삭제되었습니다.");
+        return "redirect:/qna?" + listQuery;
     }
 
     private static int parsePage(String page){
@@ -115,10 +185,105 @@ public class QnaController{
             return "qna/write";
         }
 
-        // 작성자는 입력받지 않고 로그인한 회원 이름으로 (다른 사람 이름으로 쓰기 방지)
-        qnaService.write(cleanTitle, cleanContent, writerName(user));
+        // 작성자는 입력받지 않고 로그인한 회원 이름으로 (다른 사람 이름으로 쓰기 방지), 아이디는 본인 확인용
+        qnaService.write(cleanTitle, cleanContent, writerName(user), user.getUserId());
         redirect.addFlashAttribute("message", "질문이 등록되었습니다. 답변이 달리면 상태가 '답변완료'로 바뀝니다.");
         return "redirect:/qna";
+    }
+
+    // 글 수정 화면 (본인 글 · 답변 전만): 글쓰기 화면을 수정 모드로 사용
+    @GetMapping("/{id:\\d{1,18}}/edit")
+    public String editForm(@PathVariable long id,
+                           @RequestParam(defaultValue = "1") String page,
+                           @RequestParam(defaultValue = "all") String type,
+                           @RequestParam(defaultValue = "") String keyword,
+                           HttpSession session, Model model, RedirectAttributes redirect){
+        ListState list = new ListState(page, type, keyword);
+        MemberSessionDto user = (MemberSessionDto) session.getAttribute("loginUser");
+        String blocked = checkEditable(id, user, list, session, redirect);
+        if (blocked != null) return blocked;
+
+        QnaResponse qna = qnaService.getQna(id).orElseThrow();
+        model.addAttribute("title", qna.getTitle());
+        model.addAttribute("content", qna.getContent());
+        addEditAttributes(model, user, qna, list);
+        return "qna/write";
+    }
+
+    // 글 수정 저장: 오류면 입력값 유지, 성공하면 그 글 상세로 (보던 목록 상태 유지)
+    @PostMapping("/{id:\\d{1,18}}/edit")
+    public String edit(@PathVariable long id,
+                       @RequestParam(defaultValue = "") String title,
+                       @RequestParam(defaultValue = "") String content,
+                       @RequestParam(defaultValue = "1") String page,
+                       @RequestParam(defaultValue = "all") String type,
+                       @RequestParam(defaultValue = "") String keyword,
+                       HttpSession session, Model model, RedirectAttributes redirect){
+        ListState list = new ListState(page, type, keyword);
+        MemberSessionDto user = (MemberSessionDto) session.getAttribute("loginUser");
+        String blocked = checkEditable(id, user, list, session, redirect);
+        if (blocked != null) return blocked;
+
+        String cleanTitle = title.strip();
+        String cleanContent = content.replace("\r\n", "\n").strip();
+        Map<String, String> errors = QnaService.validate(cleanTitle, cleanContent);
+        if (!errors.isEmpty()) {
+            model.addAttribute("errors", errors);
+            model.addAttribute("title", cleanTitle);
+            model.addAttribute("content", cleanContent);
+            addEditAttributes(model, user, qnaService.getQna(id).orElseThrow(), list);
+            return "qna/write";
+        }
+        // 확인 직후 답변이 달리는 경우까지 막기 위해 저장 SQL 에서도 본인 · 답변 전 조건을 다시 검사
+        if (!qnaService.update(id, user.getUserId(), cleanTitle, cleanContent)) {
+            redirect.addFlashAttribute("errorMessage", "답변이 등록되었거나 수정할 수 없는 글입니다.");
+            return "redirect:/qna/" + id + "?" + list.query();
+        }
+        redirect.addFlashAttribute("message", "글이 수정되었습니다.");
+        return "redirect:/qna/" + id + "?" + list.query();
+    }
+
+    /** 수정할 수 없으면 이동할 주소(redirect:...), 수정 가능하면 null */
+    private String checkEditable(long id, MemberSessionDto user, ListState list, HttpSession session, RedirectAttributes redirect){
+        if (user == null) {
+            LoginRedirect.save(session, "/qna/" + id + "/edit?" + list.query());
+            return "redirect:/member/login";
+        }
+        QnaResponse qna = qnaService.getQna(id).orElse(null);
+        if (qna == null) {
+            redirect.addFlashAttribute("errorMessage", "삭제되었거나 존재하지 않는 글입니다.");
+            return "redirect:/qna?" + list.query();
+        }
+        if (!QnaService.isOwner(qna, user.getUserId())) {
+            redirect.addFlashAttribute("errorMessage", "본인이 작성한 글만 수정할 수 있습니다.");
+            return "redirect:/qna/" + id + "?" + list.query();
+        }
+        if (qna.getAnswer() != null) {
+            redirect.addFlashAttribute("errorMessage", "답변이 등록된 글은 수정할 수 없습니다.");
+            return "redirect:/qna/" + id + "?" + list.query();
+        }
+        return null;
+    }
+
+    private static void addEditAttributes(Model model, MemberSessionDto user, QnaResponse qna, ListState list){
+        addFormAttributes(model, user);
+        model.addAttribute("editId", qna.getId());      // 있으면 수정 모드
+        model.addAttribute("writer", qna.getWriter());  // 작성자 이름은 처음 등록한 그대로
+        model.addAttribute("listPage", list.page());
+        model.addAttribute("searchType", list.type());
+        model.addAttribute("searchKeyword", list.keyword());
+        model.addAttribute("listQuery", list.query());
+    }
+
+    /** 목록에서 보던 페이지 · 검색 조건 (정리된 값) */
+    private record ListState(int page, String type, String keyword){
+        ListState(String page, String type, String keyword){
+            this(Math.max(parsePage(page), 1), QnaService.normalizeType(type), QnaService.normalizeKeyword(keyword));
+        }
+
+        String query(){
+            return "page=" + page + searchQuery(type, keyword);
+        }
     }
 
     private static void addFormAttributes(Model model, MemberSessionDto user){

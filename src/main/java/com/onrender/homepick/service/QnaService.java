@@ -47,8 +47,42 @@ public class QnaService{
         return errors;
     }
 
-    public void write(String title, String content, String writer){
-        qnaRepository.insert(title, content, writer);
+    public void write(String title, String content, String writer, String writerId){
+        qnaRepository.insert(title, content, writer, writerId);
+    }
+
+    public static final int ANSWER_MAX = 2000;
+
+    /** 답변 입력 검사 → 오류 메시지 (null 이면 통과) */
+    public static String validateAnswer(String answer){
+        if (answer.isEmpty()) return "답변 내용을 입력해 주세요.";
+        if (answer.length() > ANSWER_MAX) return "답변은 " + ANSWER_MAX + "자 이내로 입력해 주세요.";
+        return null;
+    }
+
+    /** 답변 등록·수정 → 글이 있으면 true */
+    public boolean answer(long id, String answer, String answerWriter){
+        return qnaRepository.saveAnswer(id, answer, answerWriter) == 1;
+    }
+
+    /** 본인 글인지 (예전 글처럼 작성자 아이디가 없으면 아무도 삭제할 수 없음) */
+    public static boolean isOwner(QnaResponse qna, String userId){
+        return qna != null && userId != null && qna.getWriterId() != null && qna.getWriterId().equals(userId);
+    }
+
+    /** 수정 가능: 본인 글이고 아직 답변이 없을 때 (답변 후 질문이 바뀌면 답변과 맞지 않게 되므로) */
+    public static boolean isEditable(QnaResponse qna, String userId){
+        return isOwner(qna, userId) && qna.getAnswer() == null;
+    }
+
+    /** 본인 글 · 답변 전이면 수정 → 성공 여부 */
+    public boolean update(long id, String userId, String title, String content){
+        return userId != null && qnaRepository.updateByIdAndWriterId(id, userId, title, content) == 1;
+    }
+
+    /** 본인 글이면 삭제 → 성공 여부 */
+    public boolean delete(long id, String userId){
+        return userId != null && qnaRepository.deleteByIdAndWriterId(id, userId) == 1;
     }
 
     public Optional<QnaResponse> getQna(long id){
