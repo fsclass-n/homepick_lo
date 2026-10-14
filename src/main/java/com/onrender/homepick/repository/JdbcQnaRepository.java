@@ -45,6 +45,11 @@ public class JdbcQnaRepository{
         };
     }
 
+    // 새 글 등록 (상태는 DB 기본값 '대기중', 작성일은 현재 시각)
+    public void insert(String title, String content, String writer){
+        jdbcTemplate.update("INSERT INTO qna (title, content, writer) VALUES (?, ?, ?)", title, content, writer);
+    }
+
     // 게시글 수 (페이지 수 계산용, 검색 조건 반영)
     public long count(String type, String keyword){
         Where w = where(type, keyword);

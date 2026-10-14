@@ -57,7 +57,17 @@
                     '<strong th:text="${keyword}">검색어</strong>' 검색 결과 <strong th:text="${qnaPage.totalCount}">0</strong>건
                     <a th:href="@{/qna}" class="qna-reset ms-2"><i class="bi bi-x-circle" aria-hidden="true"></i> 검색 해제</a>
                 </span>
-                <span th:text="|${qnaPage.page} / ${qnaPage.totalPages} 페이지|">1 / 1 페이지</span>
+                <span class="d-flex align-items-center gap-3">
+                    <span th:text="|${qnaPage.page} / ${qnaPage.totalPages} 페이지|">1 / 1 페이지</span>
+                    <!-- 글쓰기: 비로그인이면 로그인 후 글쓰기 화면으로 돌아옴 -->
+                    <a th:href="@{/qna/write}" class="btn btn-sm qna-write-btn"
+                        th:title="${user == null} ? '로그인 후 작성할 수 있어요' : '질문 작성하기'">
+                        <i class="bi" th:classappend="${user == null} ? 'bi-lock' : 'bi-pencil-square'" aria-hidden="true"></i> 글쓰기
+                    </a>
+                </span>
+            </div>
+            <div th:if="${message}" class="alert qna-alert d-flex align-items-center gap-2 py-2 mb-2" role="status">
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i><span th:text="${message}">등록되었습니다.</span>
             </div>
             <div class="card shadow-sm qna-card">
                 <div class="card-body p-0">

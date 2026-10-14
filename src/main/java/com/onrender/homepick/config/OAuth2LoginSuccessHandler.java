@@ -91,8 +91,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             // 동시 로그인으로 이미 생성된 경우 무시
         }
 
-        request.getSession(true).setAttribute("loginUser", new MemberSessionDto(userId, displayName));
-        getRedirectStrategy().sendRedirect(request, response, "/");
+        var session = request.getSession(true);
+        session.setAttribute("loginUser", new MemberSessionDto(userId, displayName));
+        getRedirectStrategy().sendRedirect(request, response, LoginRedirect.pop(session)); // 글쓰기 등에서 왔으면 그 페이지로
     }
 
     private String extractProviderId(String provider, Map<String, Object> attrs){

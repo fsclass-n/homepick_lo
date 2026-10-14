@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>질문 작성 - Q&A 게시판 - Homepick</title>
+    <link rel="icon" href="/favicon.ico" th:href="@{/favicon.ico}" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" th:href="@{/favicon.svg}">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" th:href="@{/apple-touch-icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../static/css/common.css" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" href="../static/css/qna.css" th:href="@{/css/qna.css}">
+</head>
+
+<body class="bg-light">
+
+    <div th:replace="~{common/header :: headerFragment}"></div>
+
+    <section class="qna-hero position-relative text-white text-center overflow-hidden">
+        <div class="qna-hero-glow position-absolute top-0 start-0 w-100 h-100"></div>
+        <div class="container position-relative py-5">
+            <i class="bi bi-pencil-square qna-hero-icon d-inline-block mb-2" aria-hidden="true"></i>
+            <h1 class="qna-hero-title fw-bold mb-2">질문 작성하기</h1>
+            <p class="qna-hero-desc mb-0">궁금한 점을 남겨 주시면 확인 후 답변해 드립니다.</p>
+        </div>
+    </section>
+
+    <div class="qna-main pb-5">
+        <div class="container qna-write-wrap">
+            <div class="card shadow-sm qna-card">
+                <div class="card-body p-4 p-md-5">
+                    <!-- novalidate: 브라우저 기본 말풍선 대신 화면 안내 + 서버에서 다시 검사 -->
+                    <form id="qnaWriteForm" th:action="@{/qna/write}" method="post" novalidate>
+                        <div class="mb-4">
+                            <label class="form-label qna-label">작성자</label>
+                            <div class="qna-writer d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle" aria-hidden="true"></i>
+                                <strong th:text="${writer}">홍길동</strong>
+                                <span class="text-secondary small">(로그인한 회원 이름으로 등록됩니다)</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-end">
+                                <label for="title" class="form-label qna-label">제목 <span class="text-danger">*</span></label>
+                                <small class="qna-counter"><span id="titleCount">0</span> / <span th:text="${titleMax}">100</span></small>
+                            </div>
+                            <input type="text" id="title" name="title" class="form-control qna-input"
+                                th:value="${title}" th:attr="maxlength=${titleMax}"
+                                th:classappend="${errors != null and errors.containsKey('title')} ? 'is-invalid'"
+                                placeholder="예: 전세 계약 시 확인해야 할 서류가 궁금합니다" required autofocus>
+                            <div class="invalid-feedback" id="titleFeedback"
+                                th:text="${errors != null and errors.containsKey('title')} ? ${errors['title']} : '제목을 입력해 주세요.'">제목을 입력해 주세요.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-end">
+                                <label for="content" class="form-label qna-label">내용 <span class="text-danger">*</span></label>
+                                <small class="qna-counter"><span id="contentCount">0</span> / <span th:text="${contentMax}">2000</span></small>
+                            </div>
+                            <textarea id="content" name="content" class="form-control qna-input qna-textarea" rows="10"
+                                th:attr="maxlength=${contentMax}" th:text="${content}"
+                                th:classappend="${errors != null and errors.containsKey('content')} ? 'is-invalid'"
+                                placeholder="상황을 자세히 적어 주시면 더 정확하게 답변해 드릴 수 있어요." required></textarea>
+                            <div class="invalid-feedback" id="contentFeedback"
+                                th:text="${errors != null and errors.containsKey('content')} ? ${errors['content']} : '내용을 입력해 주세요.'">내용을 입력해 주세요.</div>
+                        </div>
+
+                        <p class="qna-notice small mb-4">
+                            <i class="bi bi-info-circle" aria-hidden="true"></i>
+                            개인정보(주민등록번호, 계좌번호, 연락처 등)는 적지 말아 주세요. 등록한 글은 누구나 볼 수 있습니다.
+                        </p>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a th:href="@{/qna}" class="btn btn-outline-secondary qna-btn">취소</a>
+                            <button type="submit" id="btnQnaSubmit" class="btn qna-btn qna-submit-btn">
+                                <i class="bi bi-send" aria-hidden="true"></i> 등록하기
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{common/footer :: footerFragment}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/header.js}"></script>
+    <script th:src="@{/js/footer.js}"></script>
+    <script th:src="@{/js/qna-write.js}" src="../../static/js/qna-write.js"></script>
+</body>
+
+</html>

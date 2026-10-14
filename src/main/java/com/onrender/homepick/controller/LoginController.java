@@ -1,5 +1,6 @@
 package com.onrender.homepick.controller;
 
+import com.onrender.homepick.config.LoginRedirect;
 import com.onrender.homepick.dto.LoginRequest;
 import com.onrender.homepick.dto.MemberJoinRequest;
 import com.onrender.homepick.dto.MemberSessionDto;
@@ -38,7 +39,7 @@ public class LoginController{
         }
 
         session.setAttribute("loginUser", new MemberSessionDto(member.getUserId(), member.getName()));
-        return "redirect:/";
+        return "redirect:" + LoginRedirect.pop(session); // 글쓰기 등에서 왔으면 그 페이지로
     }
 
     @GetMapping("/logout")
