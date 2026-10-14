@@ -142,6 +142,118 @@
     font-size: 0.9rem;
 }
 
+.qna-alert-warn {
+    background: #fff4e5;
+    color: #a14a00;
+    border-color: #ffd8a8;
+}
+
+/* 목록 제목 링크 */
+.qna-title-link {
+    color: #1f2a37;
+    text-decoration: none;
+}
+
+.qna-title-link:hover,
+.qna-title-link:focus {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+/* 5. 상세 보기 */
+.qna-detail-head {
+    padding: 2rem 2rem 1.25rem;
+    border-bottom: 1px solid #eef1f4;
+}
+
+.qna-detail-no {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.qna-detail-title {
+    font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+    color: #1f2a37;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+}
+
+.qna-detail-meta {
+    font-size: 0.85rem;
+    color: #6b7580;
+}
+
+.qna-detail-body {
+    padding: 2rem;
+    min-height: 200px;
+    font-size: 1rem;
+    line-height: 1.85;
+    color: #2b3440;
+    white-space: pre-wrap;      /* 작성한 줄바꿈 그대로 */
+    overflow-wrap: anywhere;   /* 긴 URL 등이 카드 밖으로 넘치지 않게 */
+}
+
+.qna-answer {
+    margin: 0 2rem 2rem;
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    background: #f5f7fa;
+    color: #4a5562;
+    font-size: 0.9rem;
+}
+
+.qna-neighbors {
+    border: 0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.qna-neighbor {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.5rem;
+    color: #2b3440;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.qna-neighbor + .qna-neighbor {
+    border-top: 1px solid #eef1f4;
+}
+
+a.qna-neighbor:hover {
+    background: #f0f6fd;
+    color: var(--color-primary);
+}
+
+.qna-neighbor.is-empty {
+    color: #a0a8b2;
+}
+
+.qna-neighbor-label {
+    flex: 0 0 auto;
+    min-width: 72px;
+    font-weight: 700;
+    color: #6b7580;
+}
+
+.qna-neighbor-title {
+    min-width: 0;
+}
+
+@media (max-width: 575.98px) {
+    .qna-detail-head,
+    .qna-detail-body {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .qna-answer {
+        margin: 0 1.25rem 1.5rem;
+    }
+}
+
 /* 4. 글쓰기 화면 */
 .qna-write-wrap {
     max-width: 860px;

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -43,6 +44,22 @@ public class JdbcQnaRepository{
             case "writer" -> new Where(" WHERE writer LIKE ?", List.of(like));
             default -> new Where(" WHERE (title LIKE ? OR content LIKE ?)", List.of(like, like));
         };
+    }
+
+    private static final String COLUMNS = "SELECT id, title, content, writer, status, created_at FROM qna";
+
+    // 글 하나 (상세 보기)
+    public Optional<QnaResponse> findById(long id){
+        return jdbcTemplate.query(COLUMNS + " WHERE id = ?", rowMapper, id).stream().findFirst();
+    }
+
+    // 이전 글 = 바로 아래 번호(더 오래된 글), 다음 글 = 바로 위 번호(더 최근 글)
+    public Optional<QnaResponse> findPrev(long id){
+        return jdbcTemplate.query(COLUMNS + " WHERE id < ? ORDER BY id DESC LIMIT 1", rowMapper, id).stream().findFirst();
+    }
+
+    public Optional<QnaResponse> findNext(long id){
+        return jdbcTemplate.query(COLUMNS + " WHERE id > ? ORDER BY id ASC LIMIT 1", rowMapper, id).stream().findFirst();
     }
 
     // 새 글 등록 (상태는 DB 기본값 '대기중', 작성일은 현재 시각)

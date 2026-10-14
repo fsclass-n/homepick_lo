@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|${qna.title} - Q&A 게시판 - Homepick|">질문 - Q&A 게시판 - Homepick</title>
+    <link rel="icon" href="/favicon.ico" th:href="@{/favicon.ico}" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" th:href="@{/favicon.svg}">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" th:href="@{/apple-touch-icon.png}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../static/css/common.css" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" href="../static/css/qna.css" th:href="@{/css/qna.css}">
+</head>
+
+<body class="bg-light">
+
+    <div th:replace="~{common/header :: headerFragment}"></div>
+
+    <section class="qna-hero position-relative text-white text-center overflow-hidden">
+        <div class="qna-hero-glow position-absolute top-0 start-0 w-100 h-100"></div>
+        <div class="container position-relative py-5">
+            <i class="bi bi-chat-square-text qna-hero-icon d-inline-block mb-2" aria-hidden="true"></i>
+            <h1 class="qna-hero-title fw-bold mb-2">Q&A 게시판</h1>
+            <p class="qna-hero-desc mb-0">홈픽 이용 중 궁금한 점을 묻고 답변을 확인하는 공간입니다.</p>
+        </div>
+    </section>
+
+    <div class="qna-main pb-5">
+        <div class="container qna-write-wrap">
+            <article class="card shadow-sm qna-card">
+                <!-- 1. 제목 · 상태 · 작성 정보 -->
+                <header class="qna-detail-head">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="qna-detail-no" th:text="|No. ${qna.id}|">No. 1</span>
+                        <span th:if="${qna.status == '답변완료'}" class="badge bg-success" th:text="${qna.status}">답변완료</span>
+                        <span th:unless="${qna.status == '답변완료'}" class="badge bg-secondary" th:text="${qna.status}">대기중</span>
+                    </div>
+                    <h2 class="qna-detail-title fw-bold mb-3" th:text="${qna.title}">질문 제목</h2>
+                    <div class="qna-detail-meta d-flex flex-wrap gap-3">
+                        <span><i class="bi bi-person-circle" aria-hidden="true"></i> <span th:text="${qna.writer}">작성자</span></span>
+                        <span><i class="bi bi-clock" aria-hidden="true"></i>
+                            <time th:if="${qna.createdAt != null}" th:attr="datetime=${#temporals.format(qna.createdAt, 'yyyy-MM-dd''T''HH:mm')}"
+                                th:text="${#temporals.format(qna.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-14 12:00</time></span>
+                    </div>
+                </header>
+
+                <!-- 2. 본문: th:text 로 출력(태그는 글자로만) + 줄바꿈 유지(CSS pre-wrap) -->
+                <div class="qna-detail-body" th:text="${qna.content}">질문 내용</div>
+
+                <!-- 3. 답변 영역 (답변 기능은 아직 없음: 상태로 안내) -->
+                <section class="qna-answer" aria-label="답변">
+                    <div th:if="${qna.status == '답변완료'}" class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>
+                        <span>답변이 완료된 질문입니다.</span>
+                    </div>
+                    <div th:unless="${qna.status == '답변완료'}" class="d-flex align-items-center gap-2">
+                        <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                        <span>답변을 준비하고 있어요. 답변이 등록되면 상태가 <strong>답변완료</strong>로 바뀝니다.</span>
+                    </div>
+                </section>
+            </article>
+
+            <!-- 4. 이전 글 · 다음 글 (번호 기준: 이전 = 더 오래된 글) -->
+            <nav class="qna-neighbors card shadow-sm mt-3" aria-label="이전 글 다음 글">
+                <a th:if="${next != null}" class="qna-neighbor" th:href="@{/qna/{id}(id=${next.id})} + '?' + ${listQuery}">
+                    <span class="qna-neighbor-label"><i class="bi bi-chevron-up" aria-hidden="true"></i> 다음 글</span>
+                    <span class="qna-neighbor-title text-truncate" th:text="${next.title}">다음 글 제목</span>
+                </a>
+                <div th:if="${next == null}" class="qna-neighbor is-empty">
+                    <span class="qna-neighbor-label"><i class="bi bi-chevron-up" aria-hidden="true"></i> 다음 글</span>
+                    <span class="qna-neighbor-title">다음 글이 없습니다.</span>
+                </div>
+                <a th:if="${prev != null}" class="qna-neighbor" th:href="@{/qna/{id}(id=${prev.id})} + '?' + ${listQuery}">
+                    <span class="qna-neighbor-label"><i class="bi bi-chevron-down" aria-hidden="true"></i> 이전 글</span>
+                    <span class="qna-neighbor-title text-truncate" th:text="${prev.title}">이전 글 제목</span>
+                </a>
+                <div th:if="${prev == null}" class="qna-neighbor is-empty">
+                    <span class="qna-neighbor-label"><i class="bi bi-chevron-down" aria-hidden="true"></i> 이전 글</span>
+                    <span class="qna-neighbor-title">이전 글이 없습니다.</span>
+                </div>
+            </nav>
+
+            <div class="d-flex justify-content-between gap-2 mt-4">
+                <a th:href="@{/qna} + '?' + ${listQuery}" class="btn btn-outline-secondary qna-btn">
+                    <i class="bi bi-list-ul" aria-hidden="true"></i> 목록
+                </a>
+                <a th:href="@{/qna/write}" class="btn qna-btn qna-submit-btn">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i> 글쓰기
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{common/footer :: footerFragment}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/header.js}"></script>
+    <script th:src="@{/js/footer.js}"></script>
+</body>
+
+</html>

@@ -69,6 +69,9 @@
             <div th:if="${message}" class="alert qna-alert d-flex align-items-center gap-2 py-2 mb-2" role="status">
                 <i class="bi bi-check-circle-fill" aria-hidden="true"></i><span th:text="${message}">등록되었습니다.</span>
             </div>
+            <div th:if="${errorMessage}" class="alert qna-alert qna-alert-warn d-flex align-items-center gap-2 py-2 mb-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><span th:text="${errorMessage}">존재하지 않는 글입니다.</span>
+            </div>
             <div class="card shadow-sm qna-card">
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0 text-center align-middle">
@@ -96,7 +99,10 @@
                                 <!-- 번호 -->
                                 <td th:text="${qna.id}">1</td>
                                 <!-- 제목 -->
-                                <td class="text-start" th:text="${qna.title}">제목입니다</td>
+                                <td class="text-start">
+                                    <a class="qna-title-link" th:href="@{/qna/{id}(id=${qna.id})} + '?' + ${listQuery}"
+                                        th:text="${qna.title}">제목입니다</a>
+                                </td>
                                 <!-- 작성자 -->
                                 <td th:text="${qna.writer}">작성자</td>
                                 <!-- 처리 상태 배지 -->

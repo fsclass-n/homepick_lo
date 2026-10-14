@@ -1,6 +1,7 @@
 package com.onrender.homepick.service;
 
 import com.onrender.homepick.dto.QnaPage;
+import com.onrender.homepick.dto.QnaResponse;
 import com.onrender.homepick.repository.JdbcQnaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +49,18 @@ public class QnaService{
 
     public void write(String title, String content, String writer){
         qnaRepository.insert(title, content, writer);
+    }
+
+    public Optional<QnaResponse> getQna(long id){
+        return qnaRepository.findById(id);
+    }
+
+    public Optional<QnaResponse> getPrev(long id){
+        return qnaRepository.findPrev(id);
+    }
+
+    public Optional<QnaResponse> getNext(long id){
+        return qnaRepository.findNext(id);
     }
 
     public QnaPage getQnaPage(int requestedPage, String type, String keyword){

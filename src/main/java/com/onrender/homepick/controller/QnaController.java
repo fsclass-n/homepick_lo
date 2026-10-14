@@ -3,12 +3,14 @@ package com.onrender.homepick.controller;
 import com.onrender.homepick.config.LoginRedirect;
 import com.onrender.homepick.dto.MemberSessionDto;
 import com.onrender.homepick.dto.QnaPage;
+import com.onrender.homepick.dto.QnaResponse;
 import com.onrender.homepick.service.QnaService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,20 +33,52 @@ public class QnaController{
     public String list(@RequestParam(defaultValue = "1") String page,
                        @RequestParam(defaultValue = "all") String type,
                        @RequestParam(defaultValue = "") String keyword, HttpSession session, Model model){
-        int pageNo = page.matches("-?\\d{1,9}") ? Integer.parseInt(page) : 1;
         String searchType = QnaService.normalizeType(type);
         String searchKeyword = QnaService.normalizeKeyword(keyword);
-        QnaPage qnaPage = qnaService.getQnaPage(pageNo, searchType, searchKeyword);
+        QnaPage qnaPage = qnaService.getQnaPage(parsePage(page), searchType, searchKeyword);
         model.addAttribute("qnaPage", qnaPage);
         model.addAttribute("type", searchType);
         model.addAttribute("keyword", searchKeyword.isEmpty() ? null : searchKeyword);
         // 페이지 링크에 이어 붙일 검색 조건 (검색 중일 때만, URL 인코딩)
-        model.addAttribute("searchQuery", searchKeyword.isEmpty() ? ""
-                : "&type=" + searchType + "&keyword=" + URLEncoder.encode(searchKeyword, StandardCharsets.UTF_8));
+        String searchQuery = searchQuery(searchType, searchKeyword);
+        model.addAttribute("searchQuery", searchQuery);
+        // 상세 보기 링크에 붙여 [목록]으로 돌아올 때 같은 페이지·검색 결과로
+        model.addAttribute("listQuery", "page=" + qnaPage.page() + searchQuery);
         model.addAttribute("qnaList", qnaPage.items());
         model.addAttribute("pageSize", QnaService.PAGE_SIZE);
         model.addAttribute("user", session.getAttribute("loginUser"));
         return "qna/list";
+    }
+
+    // 상세 보기 (누구나), /qna/12?page=2&type=..&keyword=.. → [목록]이 보던 페이지·검색 결과로 돌아감
+    // 숫자가 아닌 주소(/qna/abc)는 이 매핑에 걸리지 않아 404
+    @GetMapping("/{id:\\d{1,18}}")
+    public String detail(@PathVariable long id,
+                         @RequestParam(defaultValue = "1") String page,
+                         @RequestParam(defaultValue = "all") String type,
+                         @RequestParam(defaultValue = "") String keyword,
+                         HttpSession session, Model model, RedirectAttributes redirect){
+        QnaResponse qna = qnaService.getQna(id).orElse(null);
+        if (qna == null) {
+            redirect.addFlashAttribute("errorMessage", "삭제되었거나 존재하지 않는 글입니다.");
+            return "redirect:/qna";
+        }
+        String listQuery = "page=" + Math.max(parsePage(page), 1)
+                + searchQuery(QnaService.normalizeType(type), QnaService.normalizeKeyword(keyword));
+        model.addAttribute("qna", qna);
+        model.addAttribute("prev", qnaService.getPrev(id).orElse(null));
+        model.addAttribute("next", qnaService.getNext(id).orElse(null));
+        model.addAttribute("listQuery", listQuery);
+        model.addAttribute("user", session.getAttribute("loginUser"));
+        return "qna/detail";
+    }
+
+    private static int parsePage(String page){
+        return page.matches("-?\\d{1,9}") ? Integer.parseInt(page) : 1;
+    }
+
+    private static String searchQuery(String type, String keyword){
+        return keyword.isEmpty() ? "" : "&type=" + type + "&keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8);
     }
 
     // 글쓰기 화면 (로그인 필요 → 로그인 후 다시 글쓰기 화면으로)
